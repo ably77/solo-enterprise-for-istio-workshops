@@ -1,5 +1,10 @@
 # Deploy the Gloo Mesh Control Plane on cluster1
 
+# Objectives
+- Install the Gloo Platform management plane on cluster1
+- Register cluster2 as a workload cluster with the management plane
+- Access the Gloo Mesh UI
+
 ### Prerequisites
 This lab assumes that you have completed the setup in `010`
 

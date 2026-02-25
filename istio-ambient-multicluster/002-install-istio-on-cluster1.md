@@ -4,6 +4,8 @@
 - Deploy Istio on Kubernetes with Helm based install
 - Install Istio Ambient Mesh
 
+![](../images/install-istio-1.png)
+
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 with your desired context name
 ```bash

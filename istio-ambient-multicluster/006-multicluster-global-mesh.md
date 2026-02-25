@@ -1,9 +1,11 @@
-# Multicluster
+# Multicluster - Global Mesh
 
 # Objectives
 - Link the two clusters
 - Configure a globally available service using labels (productpage)
 - Reconfigure ingress to global service hostname (*.<namespace>.mesh.internal)
+
+![](../images/multicluster-global-mesh-1.png)
 
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 and cluster2 with your desired context name
@@ -44,7 +46,13 @@ for deploy in $(kubectl get deploy -n istio-gateways --context $CLUSTER2 -o json
   done
 ```
 
-Link the e/w gateways gateways
+Check to see that the e/w gateways have been deployed and an LB service has been generated
+```bash
+kubectl get pods,svc -n istio-gateways --context $CLUSTER1                                          
+kubectl get pods,svc -n istio-gateways --context $CLUSTER2
+```
+
+Link the e/w gateways
 ```bash
 ./solo-istioctl multicluster link --contexts=$CLUSTER1,$CLUSTER2 --namespace istio-gateways
 ```
@@ -105,6 +113,8 @@ SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-hea
 curl http://$SVC/productpage
 ```
 
+> **No LoadBalancer?** If you are using port-forward, replace `http://$SVC` with `http://localhost:9080` in the curl commands throughout this lab, and keep the port-forward to `svc/productpage` from lab 005 running in a separate terminal.
+
 At this point all traffic is being served from cluster1. You can confirm this in the browser by looking at the **Reviews** section on the productpage — the reviewer cluster name will show `cluster1`, since we configured the `CLUSTER_NAME` environment variable on the reviews deployments earlier.
 
 ## Failover Bookinfo on cluster1
@@ -124,7 +134,7 @@ curl http://$SVC/productpage
 
 Tail logs of ztunnel on `cluster2` in a new terminal to watch logs
 ```bash
-kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER2 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER2 -f --prefix
 ```
 You should see traffic going to cluster2
 
@@ -139,7 +149,7 @@ In the ztunnel logs of cluster2 we should see that traffic is no longer routing 
 
 Tail logs of ztunnel on `cluster1` in a new terminal to watch logs
 ```bash
-kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
 ```
 If you retry the curl command you should now see traffic going to back to cluster1
 

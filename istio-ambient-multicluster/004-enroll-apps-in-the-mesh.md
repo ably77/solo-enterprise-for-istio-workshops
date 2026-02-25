@@ -4,6 +4,8 @@
 - Enroll the bookinfo namespaces into Ambient Mesh on cluster1 and cluster2
 - Validate workloads are enrolled in the mesh using `istioctl`
 
+![](../images/enroll-apps-in-mesh-1.png)
+
 ## Prerequisites
 Ensure the following environment variables are set:
 ```bash

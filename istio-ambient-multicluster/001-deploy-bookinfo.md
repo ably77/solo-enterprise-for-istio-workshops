@@ -4,6 +4,8 @@
 - Deploy the bookinfo sample application across two namespaces on cluster1 and cluster2
 - Validate the application is accessible via port-forward
 
+![](../images/deploy-bookinfo-1.png)
+
 ## Prerequisites
 Ensure the following environment variables are set from the previous labs:
 ```bash

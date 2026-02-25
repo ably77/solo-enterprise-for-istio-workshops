@@ -41,21 +41,21 @@ Hands-on workshops for deploying and operating **Solo.io's Enterprise Istio** wi
 Each workshop follows the same numbered lab sequence:
 
 ```
-000-introduction.md         Overview and objectives
-000-prerequisites.md        Requirements and image list
-000-tools.md                Tool installation
-001-deploy-bookinfo.md      Deploy sample application
-002-install-istio-*.md      Install Istio on cluster 1
-003-install-istio-*.md      Install Istio on cluster 2
-004-enroll-apps-*.md        Enroll apps in the mesh
-005-expose-bookinfo.md      Configure ingress gateway
-006-multicluster.md         Link the clusters
-007-segments.md             Traffic segmentation
-008-global-aliases.md       Global service aliases
-009-mesh-access-control.md  Zero-trust access policies
-010-egress.md               Egress control
-011-install-gme-*.md        Install Gloo Mesh Enterprise UI
-012-cleanup.md              Teardown
+000-introduction.md                   Overview and objectives
+000-prerequisites.md                  Requirements and image list
+000-tools.md                          Tool installation
+001-deploy-bookinfo.md                Deploy sample application
+002-install-istio-*.md                Install Istio on cluster 1
+003-install-istio-*.md                Install Istio on cluster 2
+004-enroll-apps-*.md                  Enroll apps in the mesh
+005-expose-bookinfo.md                Configure ingress gateway
+006-multicluster-global-mesh.md       Link the clusters
+007-segments.md                       Traffic segmentation
+008-global-aliases.md                 Global service aliases
+009-mesh-access-control.md            Zero-trust access policies
+010-egress.md                         Egress control
+011-install-gme-*.md                  Install Gloo Mesh Enterprise UI
+012-cleanup.md                        Teardown
 ```
 
 ## Getting Started
