@@ -28,7 +28,7 @@
 - Gloo Platform 2.12.0
 
 # High Level Architecture Diagram
-![](../images/multicluster-global-mesh-1.png)
+![](../images/multicluster-global-mesh-2.png)
 
 ## License Key Details
 Gloo Trial License Expires:
