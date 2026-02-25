@@ -7,7 +7,7 @@
 - Assign each cluster to its own segment via a namespace label
 - Verify that ACME's productpage can no longer reach Acquired Company's endpoints
 
-![](../images/segments-namespace-sameness-isolation-1.png)
+![](../images/segments-namespace-sameness-isolation-2.png)
 
 ## Prerequisites
 This lab assumes you have completed the multicluster setup in lab `006`. Both clusters must be linked and the clusters' backend services (`details`, `reviews`, `ratings`) must be running in the `bookinfo-backends` namespace.
@@ -244,7 +244,7 @@ Segments and global mesh connectivity are not mutually exclusive. It is possible
 
 In the diagram below, ACME's two clusters share a segment and can fail over between themselves, while Acquired Company's cluster remains in its own isolated segment with no cross-company reachability.
 
-![](../images/segments-failover-namespace-sameness-isolation-1.png)
+![](../images/segments-failover-namespace-sameness-isolation-2.png)
 
 ## Cleanup (Skip this step if evaluating global-aliases next)
 Follow the cleanup steps below to remove segments and return to a single flat global mesh. You can skip this cleanup step if moving forward to evaluate global aliases using segments.

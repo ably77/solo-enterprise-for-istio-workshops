@@ -5,7 +5,7 @@
 - Configure a globally available service using labels (productpage)
 - Reconfigure ingress to global service hostname (*.<namespace>.mesh.internal)
 
-![](../images/multicluster-global-mesh-1.png)
+![](../images/multicluster-global-mesh-2.png)
 
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 and cluster2 with your desired context name
