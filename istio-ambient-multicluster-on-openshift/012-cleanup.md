@@ -1,0 +1,20 @@
+## Cleanup
+
+Uninstall Istio and Bookinfo application on `cluster1` and `cluster2` by running this for loop
+```bash
+export CLUSTER1=cluster1
+export CLUSTER2=cluster2
+export CLUSTERS=($CLUSTER1 $CLUSTER2)
+
+for CONTEXT in "${CLUSTERS[@]}"; do
+  echo "Cleaning up $CONTEXT..."
+  kubectl delete httproute -n bookinfo-frontends --all --context $CONTEXT
+  kubectl delete gateways -n istio-gateways --all --context $CONTEXT
+  kubectl delete gateways -n istio-system --all --context $CONTEXT
+  helm uninstall ztunnel -n kube-system --kube-context $CONTEXT
+  helm uninstall istiod -n istio-system --kube-context $CONTEXT
+  helm uninstall istio-cni -n kube-system --kube-context $CONTEXT
+  helm uninstall istio-base -n istio-system --kube-context $CONTEXT
+  kubectl delete ns bookinfo-frontends bookinfo-backends istio-gateways istio-system --context $CONTEXT
+done
+```

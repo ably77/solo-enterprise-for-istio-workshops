@@ -1,0 +1,136 @@
+## Enforce Mesh Access Control Policies
+
+### Prerequisites
+This lab assumes that you have completed the setup in `008`
+
+## Access Control
+Bookinfo is a great application to demonstrate access control because it has distinct frontend and backend services, allowing fine-grained policies to be applied and tested across service boundaries.
+
+Check to see that the application has been deployed
+```bash
+kubectl get pods -n bookinfo-frontends --context $CLUSTER1
+kubectl get pods -n bookinfo-backends --context $CLUSTER1
+```
+
+Set the `SVC` variable to the ingress gateway LoadBalancer address
+```bash
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+```
+
+Navigate to the bookinfo application in your browser
+```bash
+echo http://$SVC/productpage
+```
+
+Or verify with curl
+```bash
+curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
+```
+
+Throughout this lab you can either refresh the browser or use curl to validate each policy change
+
+### Configure deny-all auth policy
+Apply deny all auth policy to both bookinfo-frontends and bookinfo-backends
+```bash
+cat auth-policy/allow-nothing.yaml
+echo
+kubectl apply -f auth-policy/allow-nothing.yaml --context $CLUSTER1
+```
+
+If you refresh the bookinfo page in the browser you should now see `upstream connect error or disconnect/reset before headers. reset reason: connection termination`
+
+or using curl
+```bash
+curl -s http://$SVC/productpage
+```
+
+Take a look at the `ztunnel` logs to see the rejection
+```bash
+kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+```
+
+### Allow access from istio ingress to productpage
+Allow Istio ingress to access productpage
+```bash
+cat auth-policy/productpage-auth.yaml
+echo
+kubectl apply -f auth-policy/productpage-auth.yaml --context $CLUSTER1
+```
+Refresh the application in the browser, now you should be able to access the productpage app, but notice that the details, ratings, and reviews applications are unavailable
+
+or using curl
+```bash
+curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
+curl -s http://$SVC/productpage | grep -A 10 details
+curl -s http://$SVC/productpage | grep -A 10 reviews
+```
+
+Take a look at the `ztunnel` logs, this time you will see a successful connection from the ingress gateway to productpage
+
+But notice that we observe a `401 Unauthorized` for the connnection from productpage to reviews, ratings, and details
+```bash
+kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+```
+
+### Allow access from productpage to details
+Allow productpage to access details
+```bash
+cat auth-policy/details-auth.yaml
+echo
+kubectl apply -f auth-policy/details-auth.yaml --context $CLUSTER1
+```
+Refresh the application in the browser, now you should be able to access the productpage app and details but ratings and reviews applications are unavailable
+
+or using curl
+```bash
+curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
+curl -s http://$SVC/productpage | grep -A 10 details
+curl -s http://$SVC/productpage | grep -A 10 reviews
+```
+
+### Allow access from productpage to reviews
+Allow productpage to access reviews
+```bash
+cat auth-policy/reviews-auth.yaml
+echo
+kubectl apply -f auth-policy/reviews-auth.yaml --context $CLUSTER1
+```
+Refresh the application in the browser, now you should be able to access the productpage app, details, and reviews, but not the ratings app (no stars available)
+
+or using curl
+```bash
+curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
+curl -s http://$SVC/productpage | grep -A 10 details
+curl -s http://$SVC/productpage | grep -A 10 reviews
+```
+
+### Allow access from reviews to ratings
+Allow reviews to access ratings
+```bash
+cat auth-policy/ratings-auth.yaml
+echo
+kubectl apply -f auth-policy/ratings-auth.yaml --context $CLUSTER1
+```
+Now the application should be fully accessible, and you have established full zero-trust using Istio authorization policies!
+
+or using curl
+```bash
+curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
+curl -s http://$SVC/productpage | grep -A 10 details
+curl -s http://$SVC/productpage | grep -A 10 reviews
+```
+
+## Cleanup
+
+Remove components
+```bash
+kubectl delete authorizationpolicies --all -n bookinfo-frontends --context $CLUSTER1
+kubectl delete authorizationpolicies --all -n bookinfo-backends --context $CLUSTER1
+```
+
+## Next Steps
+At this point we have completed the following objectives
+- Enforced zero-trust access control policies across bookinfo services
+- Validated authorization policies using Istio AuthorizationPolicy
+
+In the next step `010` we will configure egress with a waypoint
