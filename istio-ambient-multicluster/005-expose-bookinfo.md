@@ -4,6 +4,8 @@
 - Deploy an Istio Ingress Gateway on cluster1
 - Expose the bookinfo application via an HTTPRoute
 
+![](../images/expose-bookinfo-1.png)
+
 ## Configure Ingress Gateway and Expose Application on cluster1
 
 Deploy an Istio Ingressgateway

@@ -1,4 +1,10 @@
-## Enforce Mesh Access Control Policies
+# Enforce Mesh Access Control Policies
+
+# Objectives
+- Apply a deny-all authorization policy to establish a zero-trust baseline
+- Incrementally allow traffic between bookinfo services using Istio AuthorizationPolicy
+- Validate each policy change using the browser or curl
+- Observe policy enforcement in ztunnel logs
 
 ### Prerequisites
 This lab assumes that you have completed the setup in `008`

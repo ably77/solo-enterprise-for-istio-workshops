@@ -1,4 +1,12 @@
-## Egress with Waypoint
+# Egress with Waypoint
+
+# Objectives
+- Deploy a shared egress waypoint in a dedicated `egress` namespace
+- Route outbound traffic to an external service through the waypoint
+- Enable access logging on the egress waypoint
+- Enforce egress authorization policies to restrict allowed paths and source principals
+
+![](../images/egress-1.png)
 
 ### Prerequisites
 This lab assumes that you have completed the setup in `009`

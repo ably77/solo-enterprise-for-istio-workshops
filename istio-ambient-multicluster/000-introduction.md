@@ -27,8 +27,8 @@
 - Istio 1.29.0-solo
 - Gloo Platform 2.12.0
 
-# Application Diagram
-![](images/high-level-architecture-1.png)
+# High Level Architecture Diagram
+![](../images/multicluster-global-mesh-1.png)
 
 ## License Key Details
 Gloo Trial License Expires:
