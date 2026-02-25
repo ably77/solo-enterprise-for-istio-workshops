@@ -13,7 +13,7 @@ export CLUSTER2=cluster2
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
-export ISTIO_VERSION=1.29.0-patch0
+export ISTIO_VERSION=1.29.0
 ```
 
 ## Create istio-system namespace and shared root trust secret in cluster2

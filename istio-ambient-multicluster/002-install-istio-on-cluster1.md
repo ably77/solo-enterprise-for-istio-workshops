@@ -13,7 +13,7 @@ export CLUSTER1=cluster1
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
-export ISTIO_VERSION=1.29.0-patch0
+export ISTIO_VERSION=1.29.0
 ```
 
 ## Install Solo istioctl
