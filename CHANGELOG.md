@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.2 - (2-25-26)
+---
+- Remove `solo-istioctl` binary from repo. Instructions for install in `000-tools.md`
+
 0.0.1 - (2-25-26)
 ---
 - Add README.md
