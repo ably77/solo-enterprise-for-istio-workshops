@@ -23,9 +23,9 @@
 - Failover
 
 ## Validated on
-- OpenShift 4.16.0 - 4.18.18 (latest)
-- Istio 1.26.1-solo
-- Gloo Platform 2.9.1
+- OpenShift 4.16.0 - 4.19.30 (latest)
+- Istio 1.29.0-solo
+- Gloo Platform 2.12.0
 
 # Application Diagram
 ![](images/high-level-architecture-1.png)
