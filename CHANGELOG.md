@@ -1,5 +1,11 @@
 # Changelog
 
+0.0.8 - (2-26-26)
+---
+- New Workshop: OSS Istio Sidecar to Solo Enterprise Ambient
+- Fixes for waypoint lab in multicluster demos
+- Update README.md
+
 0.0.7 - (2-25-26)
 ---
 - Add dependencies as prerequisites to each lab

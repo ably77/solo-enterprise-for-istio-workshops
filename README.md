@@ -10,6 +10,7 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 |---|---|---|
 | [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Kubernetes | Ambient mesh across two Kubernetes clusters |
 | [`istio-ambient-multicluster-on-openshift`](istio-ambient-multicluster-on-openshift/) | OpenShift | Ambient mesh across two OpenShift clusters |
+| [`istio-oss-sidecar-to-enterprise-ambient`](istio-oss-sidecar-to-enterprise-ambient/) | Kubernetes | In-place migration from OSS Istio sidecar to Solo Enterprise Ambient |
 
 ## Use Cases Covered
 
