@@ -53,9 +53,10 @@ Each workshop follows the same numbered lab sequence:
 007-segments.md                       Traffic segmentation
 008-global-aliases.md                 Global service aliases
 009-mesh-access-control.md            Zero-trust access policies
-010-egress.md                         Egress control
-011-install-gme-*.md                  Install Gloo Mesh Enterprise UI
-012-cleanup.md                        Teardown
+010-waypoints.md                      L7 traffic management with waypoints
+011-egress.md                         Egress control
+012-install-gme-*.md                  Install Gloo Mesh Enterprise UI
+013-cleanup.md                        Teardown
 ```
 
 ## Getting Started

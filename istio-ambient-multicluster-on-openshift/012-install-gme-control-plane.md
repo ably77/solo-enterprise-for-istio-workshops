@@ -11,7 +11,7 @@
 ![](../images/gloo-ui-2.png)
 
 ### Prerequisites
-This lab assumes that you have completed the setup in `010`
+This lab assumes that you have completed the setup in `011`
 
 ## Set environment variables
 In this workshop, we are going to use `cluster1` as the cluster where Gloo Mesh control plane lives, just as a refresh we will set all the required environment variables again

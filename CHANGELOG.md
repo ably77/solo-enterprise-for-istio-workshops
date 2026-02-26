@@ -1,5 +1,11 @@
 # Changelog
 
+0.0.4 - (2-25-26)
+---
+- Add short readmes to each individual workshop
+- Add new lab: `010-waypoints.md`
+- Renumber/re-org labs
+
 0.0.3 - (2-25-26)
 ---
 - Update images for global aliases lab

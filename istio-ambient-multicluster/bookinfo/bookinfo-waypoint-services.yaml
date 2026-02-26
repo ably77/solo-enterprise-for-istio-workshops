@@ -1,0 +1,36 @@
+# Additional Services used only in lab 010 (L7 Traffic Management with Waypoints).
+# Apply at the start of that lab and remove during cleanup.
+---
+# Selects only reviews-v3 (red stars) — the version engineering deemed most stable
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: reviews
+    service: reviews
+  name: reviews-stable
+  namespace: bookinfo-backends
+spec:
+  ports:
+  - name: http
+    port: 9080
+  selector:
+    app: reviews
+    version: v3
+---
+# Selects only reviews-v2 (black stars) — routed to premium users via header match
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: reviews
+    service: reviews
+  name: reviews-premium
+  namespace: bookinfo-backends
+spec:
+  ports:
+  - name: http
+    port: 9080
+  selector:
+    app: reviews
+    version: v2
