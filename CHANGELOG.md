@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.5 - (2-25-26)
+---
+- General cleanup and improvements to workshop labs
+
 0.0.4 - (2-25-26)
 ---
 - Add short readmes to each individual workshop

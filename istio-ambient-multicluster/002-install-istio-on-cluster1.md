@@ -59,11 +59,10 @@ kubectl get crd gateways.gateway.networking.k8s.io --context $CLUSTER1 &> /dev/n
   { kubectl --context $CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
 ```
 
-## GKE
-On GKE, any pods with the system-node-critical `priorityClassName` can only be installed in namespaces that have a ResourceQuota defined. By default in GKE, only kube-system has a defined ResourceQuota for the node-critical class. Run the following to allow istio-cni to be deployed in the `istio-system` namespace
-```bash
-kubectl apply -f gke/resourcequota.yaml --context $CLUSTER1
-```
+> **GKE only:** Any pods with the `system-node-critical` priorityClassName can only be installed in namespaces that have a ResourceQuota defined. By default in GKE, only `kube-system` has a defined ResourceQuota for the node-critical class. Run the following to allow `istio-cni` to be deployed in the `istio-system` namespace:
+> ```bash
+> kubectl apply -f gke/resourcequota.yaml --context $CLUSTER1
+> ```
 
 Install istio-cni
 

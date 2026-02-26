@@ -48,9 +48,11 @@ for deploy in $(kubectl get deploy -n istio-gateways --context $CLUSTER2 -o json
 
 Check to see that the e/w gateways have been deployed and an LB service has been generated
 ```bash
-kubectl get pods,svc -n istio-gateways --context $CLUSTER1                                          
+kubectl get pods,svc -n istio-gateways --context $CLUSTER1
 kubectl get pods,svc -n istio-gateways --context $CLUSTER2
 ```
+
+> **Note:** The cloud load balancers for the e/w gateways may take a few minutes to be provisioned. If `EXTERNAL-IP` shows `<pending>`, wait and re-run the `kubectl get svc` command until addresses are assigned on both clusters before proceeding to link them.
 
 Link the e/w gateways
 ```bash
@@ -117,7 +119,7 @@ curl http://$SVC/productpage
 
 At this point all traffic is being served from cluster1. You can confirm this in the browser by looking at the **Reviews** section on the productpage — the reviewer cluster name will show `cluster1`, since we configured the `CLUSTER_NAME` environment variable on the reviews deployments earlier.
 
-## Failover Bookinfo on cluster1
+## Failover productpage on cluster1
 
 Scale down productpage-v1 in the `bookinfo-frontends` namespace on cluster1
 ```bash
@@ -138,7 +140,7 @@ kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER2 -f --prefix
 ```
 You should see traffic going to cluster2
 
-## Restore Bookinfo on cluster1
+## Restore productpage on cluster1
 
 Scale productpage-v1 back up in the `bookinfo-frontends` namespace on cluster1
 ```bash

@@ -6,6 +6,12 @@
 
 ![](../images/enroll-apps-in-mesh-1.png)
 
+## Background
+
+One of the key operational advantages of Istio Ambient mode is how effortlessly workloads join the mesh. In traditional sidecar-based Istio, enrolling an application requires injecting an Envoy proxy into every pod — which means rolling restarts, increased resource overhead, and per-pod lifecycle management.
+
+With Ambient, enrollment is a single namespace label. ztunnel, running as a DaemonSet on each node, transparently intercepts all traffic for labeled namespaces without touching the application pods. No sidecar injection, no restarts, no changes to application manifests. The moment the label is applied, all pod-to-pod traffic in the namespace is automatically secured with mTLS — the workloads themselves are unaware.
+
 ## Prerequisites
 Ensure the following environment variables are set:
 ```bash
