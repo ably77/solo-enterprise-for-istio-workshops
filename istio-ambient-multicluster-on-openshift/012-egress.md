@@ -176,5 +176,5 @@ At this point we have completed the following objectives
 - Configured an egress gateway using a waypoint
 - Enforced egress policies to control outbound traffic
 
-In the next step `012` we will deploy the Gloo Mesh control plane
+In the next step `013` we will deploy the Gloo Mesh control plane
 ```

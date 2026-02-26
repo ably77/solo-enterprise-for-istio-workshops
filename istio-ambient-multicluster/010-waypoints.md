@@ -472,4 +472,4 @@ At this point we have completed the following objectives:
 - Injected delays and HTTP aborts to simulate upstream failures
 - Configured retries and timeouts to handle transient failures
 
-In the next step `011` we will configure egress with a waypoint
+In the next step `011` we will inspect ztunnel and istiod metrics

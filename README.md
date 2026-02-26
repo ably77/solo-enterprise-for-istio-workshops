@@ -1,6 +1,8 @@
 # Solo Enterprise for Istio Workshops
 
-Hands-on workshops for deploying and operating **Solo.io's Enterprise Istio** with Ambient Mesh in multicluster environments. Workshops cover zero-trust security, multi-cluster routing, global service discovery, and observability using the Bookinfo sample application.
+Hands-on workshops for deploying and operating **Solo Enterprise for Istio** with Ambient Mesh in multicluster environments. Workshops cover zero-trust security, multi-cluster routing, global service discovery, and observability using the Bookinfo sample application.
+
+![](/images/intro-1.png)
 
 ## Workshops
 
@@ -54,9 +56,10 @@ Each workshop follows the same numbered lab sequence:
 008-global-aliases.md                 Global service aliases
 009-mesh-access-control.md            Zero-trust access policies
 010-waypoints.md                      L7 traffic management with waypoints
-011-egress.md                         Egress control
-012-install-gme-*.md                  Install Gloo Mesh Enterprise UI
-013-cleanup.md                        Teardown
+011-observability.md                  Observability — inspecting Istio Ambient metrics
+012-egress.md                         Egress control
+013-install-gme-*.md                  Install Gloo Mesh Enterprise UI
+014-cleanup.md                        Teardown
 ```
 
 ## Getting Started

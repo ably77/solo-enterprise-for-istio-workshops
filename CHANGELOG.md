@@ -1,5 +1,10 @@
 # Changelog
 
+0.0.6 - (2-25-26)
+---
+- Improvements to README.md
+- Add observability lab
+
 0.0.5 - (2-25-26)
 ---
 - General cleanup and improvements to workshop labs

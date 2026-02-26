@@ -2,7 +2,6 @@
 
 # Objectives
 - Install the Gloo Platform management plane on cluster1
-- Configure OpenShift Routes to expose the Gloo UI, management server, and telemetry gateway
 - Register cluster2 as a workload cluster with the management plane
 - Access the Gloo Mesh UI
 
@@ -11,7 +10,7 @@
 ![](../images/gloo-ui-2.png)
 
 ### Prerequisites
-This lab assumes that you have completed the setup in `011`
+This lab assumes that you have completed the setup in `012`
 
 ## Set environment variables
 In this workshop, we are going to use `cluster1` as the cluster where Gloo Mesh control plane lives, just as a refresh we will set all the required environment variables again
@@ -27,19 +26,6 @@ Create the `gloo-mesh` namespace on cluster1
 kubectl create namespace gloo-mesh --context ${CLUSTER1}
 ```
 
-The Gloo Platform telemetry collector (an OpenTelemetry Collector) runs as a DaemonSet and needs to collect host-level metrics and access node network interfaces to scrape telemetry data from the mesh. On OpenShift, this requires the `privileged` Security Context Constraint (SCC) — the default `restricted` SCC prevents pods from accessing host paths and running with the elevated permissions the collector needs. The rolebinding grants the `gloo-mesh` service account permission to use the `privileged` SCC. This is applied to both clusters since each runs a telemetry collector.
-
-```bash
-kubectl apply -f scc/privileged/privileged-rolebinding.yaml --context ${CLUSTER1}
-```
-
-Discover the UID range OpenShift has assigned to the gloo-mesh namespace and use the minimum value for the Prometheus securityContext. OpenShift assigns a unique UID range per namespace — hardcoding a UID that falls outside that range will cause Prometheus pods to fail admission against the restricted-v2 SCC.
-```bash
-export PROM_UID=$(kubectl get namespace gloo-mesh --context ${CLUSTER1} \
-  -o jsonpath='{.metadata.annotations.openshift\.io/sa\.scc\.uid-range}' \
-  | cut -d'/' -f1)
-```
-
 Install the Gloo Platform CRDs
 ```bash
 helm upgrade -i gloo-platform-crds gloo-platform/gloo-platform-crds \
@@ -48,7 +34,7 @@ helm upgrade -i gloo-platform-crds gloo-platform/gloo-platform-crds \
   --namespace=gloo-mesh
 ```
 
-Install the Gloo Platform management plane on cluster1. The `glooMgmtServer` and `telemetryGateway` services are exposed as `ClusterIP` because we will set up the agent on cluster2 to reach each other using OpenShift Routes
+Install the Gloo Platform management plane on cluster1. The `glooMgmtServer` and `telemetryGateway` services are exposed as `LoadBalancer` so that the agent on cluster2 can reach them directly via their external IPs.
 
 > **Private registry users:** Each component below includes a commented-out `image` override block. Uncomment and update the `registry`, `repository`, and `tag` fields to point to your private registry before running this command.
 
@@ -73,8 +59,7 @@ glooMgmtServer:
   registerCluster: true
   ports:
     healthcheck: 8091
-  serviceType: ClusterIP
-  floatingUserId: true
+  serviceType: LoadBalancer
   # override
   #image:
   #  registry: gcr.io/gloo-mesh
@@ -90,7 +75,6 @@ glooAgent:
     RELAY_DISABLE_SERVER_CERTIFICATE_VALIDATION:
       value: "true"
   runAsSidecar: false
-  floatingUserId: true
   # override
   #image:
   #  registry: gcr.io/gloo-mesh
@@ -101,7 +85,6 @@ glooAgent:
     authority: "gloo-mesh-mgmt-server.gloo-mesh"
 glooUi:
   enabled: true
-  floatingUserId: true
   serviceType: ClusterIP
   # override
   #image:
@@ -122,8 +105,6 @@ glooUi:
 redis:
   deployment:
     enabled: true
-    floatingUserId: true
-    podSecurityContext: {}
     # override
     #image:
     #  registry: docker.io
@@ -132,11 +113,6 @@ redis:
 prometheus:
   enabled: true
   server:
-    securityContext:
-      fsGroup: ${PROM_UID}
-      runAsGroup: ${PROM_UID}
-      runAsNonRoot: true
-      runAsUser: ${PROM_UID}
     # override
     #image:
     #  registry: gcr.io/gloo-mesh/prometheus
@@ -155,7 +131,7 @@ telemetryGateway:
   #  repository: gcr.io/gloo-mesh/gloo-otel-collector
   #  tag: 0.2.4
   service:
-    type: ClusterIP
+    type: LoadBalancer
 telemetryCollector:
   enabled: true
   mode: deployment
@@ -204,99 +180,26 @@ gloo-telemetry-gateway-b64f54bcf-r6rtf     1/1     Running   0          60s
 prometheus-server-5d6657746d-h7qgq         2/2     Running   0          60s
 ```
 
-## Configure OpenShift Routes
+## Get External Endpoints
 
-Expose the Gloo UI an OpenShift Route
+Wait for the LoadBalancer services to receive external IPs, then capture the endpoints:
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: gloo-mesh-ui
-  namespace: gloo-mesh
-spec:
-  subdomain: gloo-mesh-ui
-  to:
-    kind: Service
-    name: gloo-mesh-ui
-    weight: 100
-  port:
-    targetPort: console
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
-  wildcardPolicy: None
-EOF
+kubectl get svc gloo-mesh-mgmt-server gloo-telemetry-gateway -n gloo-mesh --context ${CLUSTER1}
 ```
 
-Get the URL for our Gloo UI OCP Route. It may take a moment before the Gloo UI is fully up and running and accessible through the route. Feel free to continue with the lab
+Export the external addresses for use when registering cluster2:
 ```bash
-export GLOO_UI_ADDRESS=$(oc get route gloo-mesh-ui -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.status.ingress[0].host}')
-
-echo https://$GLOO_UI_ADDRESS
-```
-
-Expose the `gloo-mesh-mgmt-server` using an OpenShift Route. This will allow the agent in our second workload cluster to reach the gloo mesh management server
-```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: gloo-mesh-mgmt-server
-  namespace: gloo-mesh
-  annotations:
-    # Needed for the different agents to connect to different replica instance of the management server deployment
-    haproxy.router.openshift.io/balance: roundrobin
-spec:
-  subdomain: gloo-mesh-mgmt-server
-  to:
-    kind: Service
-    name: gloo-mesh-mgmt-server
-    weight: 100
-  port:
-    targetPort: grpc
-  tls:
-    termination: passthrough
-    insecureEdgeTerminationPolicy: Redirect
-  wildcardPolicy: None
-EOF
-```
-
-Expose the `gloo-telemetry-gateway` using an OpenShift Route. This will allow the telemetry collectors in our second workload cluster to reach the telemetry gateway
-```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: gloo-telemetry-gateway
-  namespace: gloo-mesh
-spec:
-  subdomain: gloo-telemetry-gateway
-  to:
-    kind: Service
-    name: gloo-telemetry-gateway
-    weight: 100
-  port:
-    targetPort: otlp
-  tls:
-    termination: passthrough
-    insecureEdgeTerminationPolicy: Redirect
-  wildcardPolicy: None
-EOF
-```
-
-Then, you need to set the environment variable to tell the Gloo Mesh agents how to communicate with the management plane:
-
-```bash
-export ENDPOINT_GLOO_MESH=$(oc get route gloo-mesh-mgmt-server -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.status.ingress[0].host}')
-export ENDPOINT_TELEMETRY_GATEWAY=$(oc get route gloo-telemetry-gateway -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.status.ingress[0].host}')
-
+export ENDPOINT_GLOO_MESH=$(kubectl get svc gloo-mesh-mgmt-server -n gloo-mesh --context ${CLUSTER1} \
+  --no-headers | awk '{ print $4 }')
+export ENDPOINT_TELEMETRY_GATEWAY=$(kubectl get svc gloo-telemetry-gateway -n gloo-mesh --context ${CLUSTER1} \
+  --no-headers | awk '{ print $4 }')
 
 echo "Mgmt Plane Address: $ENDPOINT_GLOO_MESH"
 echo "Metrics Gateway Address: $ENDPOINT_TELEMETRY_GATEWAY"
 ```
 
 # Register our second workload cluster
+
 ```bash
 kubectl apply --context ${CLUSTER1} -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
@@ -309,9 +212,10 @@ spec:
 EOF
 
 kubectl --context ${CLUSTER2} create ns gloo-mesh
+```
 
-kubectl apply -f scc/privileged/privileged-rolebinding.yaml --context ${CLUSTER2}
-
+Copy the relay secrets from cluster1 to cluster2 so the agent can authenticate with the management server:
+```bash
 kubectl get secret relay-root-tls-secret -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
 kubectl create secret generic relay-root-tls-secret -n gloo-mesh --context ${CLUSTER2} --from-file ca.crt=ca.crt
 rm ca.crt
@@ -325,7 +229,9 @@ helm upgrade --install gloo-platform-crds gloo-platform-crds \
   --namespace gloo-mesh \
   --kube-context ${CLUSTER2} \
   --version ${GLOO_MESH_VERSION}
+```
 
+```bash
 helm upgrade --install gloo-agent gloo-platform \
   --repo https://storage.googleapis.com/gloo-platform/helm-charts \
   --namespace gloo-mesh \
@@ -342,18 +248,14 @@ glooAgent:
     RELAY_DISABLE_SERVER_CERTIFICATE_VALIDATION:
       value: "true"
   relay:
-    serverAddress: "${ENDPOINT_GLOO_MESH}:443"
-    authority: "${ENDPOINT_GLOO_MESH}"
-  floatingUserId: true
+    serverAddress: "${ENDPOINT_GLOO_MESH}:9900"
+    authority: "gloo-mesh-mgmt-server.gloo-mesh"
 telemetryCollector:
   enabled: true
   config:
     exporters:
       otlp:
-        endpoint: "${ENDPOINT_TELEMETRY_GATEWAY}:443"
-telemetryCollectorCustomization:
-  skipVerify: true
-  serverName: "${ENDPOINT_TELEMETRY_GATEWAY}"
+        endpoint: "${ENDPOINT_TELEMETRY_GATEWAY}:4317"
 glooAnalyzer:
   enabled: true
   runAsSidecar: true
@@ -362,22 +264,16 @@ EOF
 
 # Access the Gloo UI
 
-Using the OpenShift route
-```bash
-export GLOO_UI_ADDRESS=$(oc get route gloo-mesh-ui -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.status.ingress[0].host}')
-
-echo https://$GLOO_UI_ADDRESS
-```
-
-Using port-forward
+Use port-forward to access the Gloo Mesh UI:
 ```bash
 kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context ${CLUSTER1}
 ```
 
+Navigate to http://localhost:8090
+
 # Uninstall
 
 ```bash
-kubectl delete routes -n gloo-mesh --all --context ${CLUSTER1}
 kubectl delete kubernetescluster --all -n gloo-mesh --context ${CLUSTER1}
 
 helm uninstall gloo-agent -n gloo-mesh --kube-context ${CLUSTER1}
@@ -403,4 +299,4 @@ You have completed the workshop! You have successfully:
 - Configured egress with a waypoint
 - Deployed the Gloo Mesh Enterprise control plane
 
-If you would like to clean up all workshop resources, see `012` for cleanup instructions.
+If you would like to clean up all workshop resources, see `014` for cleanup instructions.
