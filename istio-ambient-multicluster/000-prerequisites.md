@@ -4,7 +4,8 @@
 3. meshctl install ([meshctl installation](000-tools.md#meshctl-for-debugging-gme-related-resources))
 4. helm installed
 5. A kubernetes version >1.29
-6. If you want to push local traffic easily install Vegeta as well ([Vegeta installation](000-tools.md#vegeta-cli-load-generator))
+6. `openssl` available in your shell — used in lab `002` to generate the shared root trust CA. macOS and Linux include this by default. Windows users must use WSL or Git Bash.
+7. If you want to push local traffic easily install Vegeta as well ([Vegeta installation](000-tools.md#vegeta-cli-load-generator))
 
 ### Repos/Images:
 

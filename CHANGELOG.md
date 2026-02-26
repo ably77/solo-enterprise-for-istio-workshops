@@ -1,5 +1,12 @@
 # Changelog
 
+0.0.5 - (2-25-26)
+---
+- General cleanup and improvements to workshop labs
+- Add instructions for generating secret for shared root of trust to `002`
+- Update prerequisites
+- Add images to waypoint lab
+
 0.0.4 - (2-25-26)
 ---
 - Add short readmes to each individual workshop

@@ -5,7 +5,9 @@
 - Apply an L7 AuthorizationPolicy to enforce HTTP method restrictions
 - Configure weighted traffic splitting across `reviews` service versions
 - Inject faults to simulate upstream failures
-- Configure retries and timeouts to handle transient failures
+- Configure retries to handle transient failures
+
+![](../images/waypoints-1.png)
 
 ## Prerequisites
 This lab assumes you have completed lab `009`. The `bookinfo-backends` namespace must be enrolled in the mesh.
@@ -60,6 +62,25 @@ kubectl get pods -n bookinfo-backends --context $CLUSTER1
 
 All inbound L7 traffic to services in `bookinfo-backends` now flows through this waypoint.
 
+Enable access logging on the waypoint so requests are visible in the logs throughout this lab:
+```bash
+kubectl apply --context $CLUSTER1 -f - <<EOF
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: waypoint-access-logging
+  namespace: bookinfo-backends
+spec:
+  targetRefs:
+  - kind: Gateway
+    group: gateway.networking.k8s.io
+    name: waypoint
+  accessLogging:
+  - providers:
+    - name: envoy
+EOF
+```
+
 ## L7 Authorization Policy
 
 Lab `009` used L4 authorization via ztunnel — policies that allow or deny based on workload identity (SPIFFE). Because ztunnel operates at L4, it cannot inspect HTTP attributes such as method or path.
@@ -90,7 +111,7 @@ EOF
 Verify a `GET` request succeeds:
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s -o /dev/null -w "%{http_code}" http://reviews.bookinfo-backends:9080/reviews/0
+  python3 -c "import urllib.request; print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())"
 ```
 
 You should see `200`.
@@ -98,7 +119,13 @@ You should see `200`.
 Now try a `DELETE` request, which is not in the allowed methods:
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s -o /dev/null -w "%{http_code}" -X DELETE http://reviews.bookinfo-backends:9080/reviews/0
+  python3 -c "
+import urllib.request, urllib.error
+req = urllib.request.Request('http://reviews.bookinfo-backends:9080/reviews/0', method='DELETE')
+try:
+    print(urllib.request.urlopen(req).getcode())
+except urllib.error.HTTPError as e:
+    print(e.code)"
 ```
 
 You should see `403`. The waypoint enforces the policy before the request ever reaches the reviews pod.
@@ -108,10 +135,13 @@ Check the waypoint logs to see the RBAC enforcement:
 kubectl logs -n bookinfo-backends deploy/waypoint --context $CLUSTER1 | grep -i "rbac\|403"
 ```
 
-Remove the L7 auth policy before continuing:
+Remove the L7 auth policy and access logging before continuing:
 ```bash
 kubectl delete authorizationpolicy reviews-l7-policy -n bookinfo-backends --context $CLUSTER1
+kubectl delete telemetry waypoint-access-logging -n bookinfo-backends --context $CLUSTER1
 ```
+
+![](../images/waypoints-2.png)
 
 ## Traffic Shifting
 
@@ -175,6 +205,8 @@ EOF
 
 Refresh the productpage several times — you should see mostly no stars with red stars appearing roughly 20% of the time.
 
+![](../images/waypoints-3.png)
+
 Once confidence is high, complete the rollout to 100% `reviews-stable`:
 ```bash
 kubectl apply --context $CLUSTER1 -f - <<EOF
@@ -231,22 +263,31 @@ spec:
 EOF
 ```
 
-Verify a standard request goes to the default `reviews` (mixed versions):
+Verify a standard request goes to the default `reviews` — still pinned to v1 (no stars):
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s http://reviews.bookinfo-backends:9080/reviews/0 | python3 -m json.tool
+  python3 -c "import urllib.request, json; print(json.dumps(json.load(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0')), indent=2))"
 ```
 
 Now send a request with the premium header and confirm it hits `reviews-premium` (v2, black stars):
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s http://reviews.bookinfo-backends:9080/reviews/0 \
-  -H "end-user: premium-user" | python3 -m json.tool
+  python3 -c "
+import urllib.request, json
+req = urllib.request.Request('http://reviews.bookinfo-backends:9080/reviews/0', headers={'end-user': 'premium-user'})
+print(json.dumps(json.load(urllib.request.urlopen(req)), indent=2))"
 ```
 
 The response from `reviews-v2` includes a `"color": "black"` field in the ratings — confirming the header match routed the request to `reviews-premium`.
 
 You can also verify via the productpage browser UI. The productpage forwards the `end-user` cookie as a header to downstream services. Log in as `premium-user` using the **Sign in** button (any password), then refresh — you should consistently see black stars.
+
+![](../images/waypoints-4.png)
+
+Clean up the HTTPRoute before continuing:
+```bash
+kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
+```
 
 ## Fault Injection
 
@@ -278,11 +319,16 @@ EOF
 Time a request to `reviews` and observe the delay:
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s -o /dev/null -w "Response time: %{time_total}s\n" \
-  http://reviews.bookinfo-backends:9080/reviews/0
+  python3 -c "
+import urllib.request, time
+t = time.time()
+urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0')
+print(f'Response time: {time.time()-t:.3f}s')"
 ```
 
 You should see approximately a 2-second response time.
+
+![](../images/waypoints-5.png)
 
 Now replace the delay with an HTTP abort, returning `503` on 50% of requests:
 ```bash
@@ -311,7 +357,10 @@ Send 10 requests and observe the mix of responses:
 ```bash
 for i in $(seq 1 10); do
   kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-    curl -s -o /dev/null -w "%{http_code}\n" http://reviews.bookinfo-backends:9080/reviews/0
+    python3 -c "
+import urllib.request, urllib.error
+try: print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())
+except urllib.error.HTTPError as e: print(e.code)"
 done
 ```
 
@@ -322,9 +371,11 @@ Remove the fault injection before continuing:
 kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUSTER1
 ```
 
-## Retries and Timeouts
+![](../images/waypoints-6.png)
 
-With fault injection you saw raw failures reaching the caller. Retries and timeouts let the mesh absorb transient failures transparently.
+## Retries
+
+With fault injection you saw raw failures reaching the caller. Retries let the mesh absorb transient failures transparently.
 
 Re-apply the 50% abort fault to simulate an unreliable upstream:
 ```bash
@@ -375,70 +426,22 @@ Send the same 10 requests:
 ```bash
 for i in $(seq 1 10); do
   kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-    curl -s -o /dev/null -w "%{http_code}\n" http://reviews.bookinfo-backends:9080/reviews/0
+    python3 -c "
+import urllib.request, urllib.error
+try: print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())
+except urllib.error.HTTPError as e: print(e.code)"
 done
 ```
 
 You should now see mostly `200` responses — the mesh is retrying the 50% of requests that initially fail.
 
-Now demonstrate a timeout. Remove the retry policy and apply a 500ms timeout, shorter than the upstream delay you'll inject:
-```bash
-kubectl delete virtualservice reviews-retry -n bookinfo-backends --context $CLUSTER1
-
-kubectl apply --context $CLUSTER1 -f - <<EOF
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: reviews-timeout
-  namespace: bookinfo-backends
-spec:
-  hosts:
-  - reviews
-  http:
-  - timeout: 500ms
-    route:
-    - destination:
-        host: reviews
-EOF
-```
-
-Re-apply the 2-second delay to trigger the timeout:
-```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: reviews-fault
-  namespace: bookinfo-backends
-spec:
-  hosts:
-  - reviews
-  http:
-  - fault:
-      delay:
-        fixedDelay: 2s
-        percentage:
-          value: 100
-    route:
-    - destination:
-        host: reviews
-EOF
-```
-
-Send a request and observe the timeout:
-```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
-  curl -s -o /dev/null -w "Status: %{http_code}, Time: %{time_total}s\n" \
-  http://reviews.bookinfo-backends:9080/reviews/0
-```
-
-You should see a `504` response returned in ~500ms — the mesh cuts the connection before the 2-second backend delay completes.
+![](../images/waypoints-7.png)
 
 ## Cleanup
 
 Remove all VirtualServices and the HTTPRoute created in this lab:
 ```bash
-kubectl delete virtualservice reviews-fault reviews-timeout reviews-retry -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
+kubectl delete virtualservice reviews-fault reviews-retry -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
 kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
 ```
 
@@ -450,7 +453,7 @@ kubectl delete -f bookinfo/bookinfo-waypoint-services.yaml --context $CLUSTER1 -
 Restore the `reviews` Service selector to its original state (all versions):
 ```bash
 kubectl patch svc reviews -n bookinfo-backends --context $CLUSTER1 \
-  --type=merge -p '{"spec":{"selector":{"app":"reviews"}}}'
+  --type=merge -p '{"spec":{"selector":{"app":"reviews","version":null}}}'
 ```
 
 The waypoint and namespace label can remain in place for lab `011` — they do not conflict with the egress configuration.

@@ -229,9 +229,9 @@ kubectl rollout status deploy/details-v1 -n bookinfo-backends --context $CLUSTER
 
 ## Summary
 
-Post-acquisition environments commonly share namespace names across companies — `bookinfo-backends` in ACME's cluster and `bookinfo-backends` in Acquired Company's cluster are identical from the mesh's perspective. Without isolation, linking these clusters merges their service endpoints under the same `mesh.internal` hostname, allowing ACME's workloads to silently consume Acquired Company's backends (and vice versa). This is not a misconfiguration — it is the expected behavior of a flat, multi-cluster mesh.
+Post-acquisition environments can potentially share namespace names across companies — `bookinfo-backends` in ACME's cluster and `bookinfo-backends` in Acquired Company's cluster are identical from the mesh's perspective. Without isolation, linking these clusters merges their service endpoints under the same `mesh.internal` hostname, allowing ACME's workloads to silently consume Acquired Company's backends (and vice versa). This is not a misconfiguration — it is the expected behavior of a flat, multi-cluster mesh.
 
-**Segments** solve this by assigning each cluster its own DNS domain. Once labeled, each cluster's services are only reachable via its segment-scoped hostname (`mesh.acme` or `mesh.acquired`). Services in one segment cannot resolve hostnames in another, so cross-company traffic is blocked at the DNS level without requiring any changes to application code or network policy.
+**Segments** solve this by assigning each cluster its own DNS domain within the global mesh. Once labeled, each cluster's services are only reachable via its segment-scoped hostname (`mesh.acme` or `mesh.acquired`). Services in one segment cannot resolve hostnames in another, so cross-company traffic is blocked at the DNS level without requiring any changes to application code or network policy.
 
 Key properties of Segments:
 - **Scoped by cluster** — a single namespace label on `istio-system` activates a segment for the entire cluster

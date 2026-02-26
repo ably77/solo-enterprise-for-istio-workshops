@@ -48,6 +48,8 @@ ingress-istio   LoadBalancer   10.96.133.188   a21376026888048ae88008147d54814b-
 istiod          ClusterIP      10.96.128.33    <none>                                                                    15010/TCP,15012/TCP,443/TCP,15014/TCP   7m46s
 ```
 
+> **Note:** The cloud load balancer may take a few minutes to be provisioned. If `EXTERNAL-IP` shows `<pending>`, wait and re-run the `kubectl get svc` command until an address is assigned before proceeding.
+
 Expose the bookinfo application using an HTTPRoute
 ```bash
 kubectl apply --context $CLUSTER1 -f - <<EOF
