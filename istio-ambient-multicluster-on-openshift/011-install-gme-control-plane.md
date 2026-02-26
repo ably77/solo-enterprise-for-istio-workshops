@@ -6,6 +6,10 @@
 - Register cluster2 as a workload cluster with the management plane
 - Access the Gloo Mesh UI
 
+![](../images/gloo-ui-1.png)
+
+![](../images/gloo-ui-2.png)
+
 ### Prerequisites
 This lab assumes that you have completed the setup in `010`
 

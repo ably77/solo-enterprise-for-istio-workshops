@@ -8,6 +8,8 @@
 - Activate Pattern 4 (annotation-value injection) by annotating the `ratings` service
 - Confirm that Acquired Company's aliases on `cluster2` are fully independent of ACME's patterns
 
+![](../images/segments-global-aliases-1.png)
+
 ## Prerequisites
 This lab assumes you have completed lab `007`. The Segment CRs (`acme-segment`, `acquired-segment`) and their namespace labels must be in place — if you ran the cleanup in `007`, re-apply the Segment CRs and namespace labels from that lab before continuing.
 
