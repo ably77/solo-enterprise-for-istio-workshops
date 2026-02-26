@@ -6,8 +6,9 @@
 - Validate each policy change using the browser or curl
 - Observe policy enforcement in ztunnel logs
 
-### Prerequisites
-This lab assumes that you have completed the setup in `008`
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-004`
+- Setup from lab `005` is optional but recommended
 
 ## Access Control
 Bookinfo is a great application to demonstrate access control because it has distinct frontend and backend services, allowing fine-grained policies to be applied and tested across service boundaries.

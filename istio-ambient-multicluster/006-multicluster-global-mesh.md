@@ -7,6 +7,9 @@
 
 ![](../images/multicluster-global-mesh-2.png)
 
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-005`
+
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 and cluster2 with your desired context name
 ```bash

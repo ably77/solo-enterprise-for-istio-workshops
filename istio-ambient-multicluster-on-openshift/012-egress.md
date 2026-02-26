@@ -8,8 +8,8 @@
 
 ![](../images/egress-1.png)
 
-### Prerequisites
-This lab assumes that you have completed the setup in `010`
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-004`
 
 ### Set environment variables
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 with your desired context name

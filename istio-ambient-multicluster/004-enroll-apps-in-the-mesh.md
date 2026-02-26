@@ -6,6 +6,9 @@
 
 ![](../images/enroll-apps-in-mesh-1.png)
 
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-003`
+
 ## Background
 
 One of the key operational advantages of Istio Ambient mode is how effortlessly workloads join the mesh. In traditional sidecar-based Istio, enrolling an application requires injecting an Envoy proxy into every pod — which means rolling restarts, increased resource overhead, and per-pod lifecycle management.

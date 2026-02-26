@@ -10,7 +10,8 @@
 ![](../images/segments-namespace-sameness-isolation-2.png)
 
 ## Prerequisites
-This lab assumes you have completed the multicluster setup in lab `006`. Both clusters must be linked and the clusters' backend services (`details`, `reviews`, `ratings`) must be running in the `bookinfo-backends` namespace.
+- This lab assumes you have completed setup from labs `000-006`
+- Both clusters must be linked and the clusters' backend services (`details`, `reviews`, `ratings`) must be running in the `bookinfo-backends` namespace.
 
 Ensure the following environment variables are set:
 ```bash
