@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.4 - (2-25-26)
+---
+- Add short readmes to each individual workshop
+
 0.0.3 - (2-25-26)
 ---
 - Update images for global aliases lab
