@@ -36,7 +36,52 @@ Check the `istioctl version`
 ./solo-istioctl version
 ```
 
-## Create istio-system namespace and shared root trust secret in cluster1
+## Generate shared root trust secret
+
+Both clusters must share the same root of trust so that workloads can verify each other's mTLS certificates across cluster boundaries. Generate a self-signed root CA and write it to a local file that will be applied to both clusters:
+```bash
+WORK_DIR=$(mktemp -d)
+
+openssl req -x509 -sha256 -nodes -days 3650 \
+  -newkey rsa:2048 \
+  -keyout "$WORK_DIR/ca-key.pem" \
+  -out "$WORK_DIR/ca-cert.pem" \
+  -subj "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=root-cert"
+
+openssl req -newkey rsa:2048 -nodes \
+  -keyout "$WORK_DIR/intermediate-key.pem" \
+  -out "$WORK_DIR/intermediate-csr.pem" \
+  -subj "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=intermediate-cert"
+
+openssl x509 -req -sha256 -days 3650 \
+  -in "$WORK_DIR/intermediate-csr.pem" \
+  -CA "$WORK_DIR/ca-cert.pem" \
+  -CAkey "$WORK_DIR/ca-key.pem" \
+  -CAcreateserial \
+  -CAserial "$WORK_DIR/ca-cert.srl" \
+  -out "$WORK_DIR/intermediate-cert.pem"
+
+cat "$WORK_DIR/intermediate-cert.pem" "$WORK_DIR/ca-cert.pem" > "$WORK_DIR/cert-chain.pem"
+
+cat <<EOF > shared-root-trust-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cacerts
+  namespace: istio-system
+type: Opaque
+data:
+  ca-cert.pem: $(base64 < "$WORK_DIR/ca-cert.pem" | tr -d '\n')
+  ca-key.pem: $(base64 < "$WORK_DIR/ca-key.pem" | tr -d '\n')
+  cert-chain.pem: $(base64 < "$WORK_DIR/cert-chain.pem" | tr -d '\n')
+  root-cert.pem: $(base64 < "$WORK_DIR/ca-cert.pem" | tr -d '\n')
+EOF
+
+rm -rf "$WORK_DIR"
+echo "Generated shared-root-trust-secret.yaml"
+```
+
+## Create istio-system namespace and apply shared root trust secret in cluster1
 ```bash
 kubectl create namespace istio-system --context $CLUSTER1
 kubectl apply -f shared-root-trust-secret.yaml --context $CLUSTER1

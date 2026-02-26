@@ -9,8 +9,8 @@
 *.crt
 *.csr
 credentials.json
-*secret*
-*credential*
+*-secret.yaml
+*-credentials.yaml
 
 # Local configuration
 .claude/settings.local.json
@@ -40,3 +40,9 @@ node_modules/
 # Temporary files
 tmp/
 temp/
+
+# Downloaded binaries
+**/solo-istioctl
+
+# Generated secrets (never commit private keys)
+**/shared-root-trust-secret.yaml

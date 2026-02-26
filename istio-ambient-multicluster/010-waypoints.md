@@ -7,6 +7,8 @@
 - Inject faults to simulate upstream failures
 - Configure retries to handle transient failures
 
+![](../images/waypoints-1.png)
+
 ## Prerequisites
 This lab assumes you have completed lab `009`. The `bookinfo-backends` namespace must be enrolled in the mesh.
 
@@ -139,6 +141,8 @@ kubectl delete authorizationpolicy reviews-l7-policy -n bookinfo-backends --cont
 kubectl delete telemetry waypoint-access-logging -n bookinfo-backends --context $CLUSTER1
 ```
 
+![](../images/waypoints-2.png)
+
 ## Traffic Shifting
 
 With the waypoint in place, the `HTTPRoute` resource can control how traffic is distributed across backend services — enabling canary deployments and user-segment routing without any application changes.
@@ -200,6 +204,8 @@ EOF
 ```
 
 Refresh the productpage several times — you should see mostly no stars with red stars appearing roughly 20% of the time.
+
+![](../images/waypoints-3.png)
 
 Once confidence is high, complete the rollout to 100% `reviews-stable`:
 ```bash
@@ -276,6 +282,8 @@ The response from `reviews-v2` includes a `"color": "black"` field in the rating
 
 You can also verify via the productpage browser UI. The productpage forwards the `end-user` cookie as a header to downstream services. Log in as `premium-user` using the **Sign in** button (any password), then refresh — you should consistently see black stars.
 
+![](../images/waypoints-4.png)
+
 Clean up the HTTPRoute before continuing:
 ```bash
 kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
@@ -320,6 +328,8 @@ print(f'Response time: {time.time()-t:.3f}s')"
 
 You should see approximately a 2-second response time.
 
+![](../images/waypoints-5.png)
+
 Now replace the delay with an HTTP abort, returning `503` on 50% of requests:
 ```bash
 kubectl apply --context $CLUSTER1 -f - <<EOF
@@ -360,6 +370,8 @@ Remove the fault injection before continuing:
 ```bash
 kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUSTER1
 ```
+
+![](../images/waypoints-6.png)
 
 ## Retries
 
@@ -422,6 +434,8 @@ done
 ```
 
 You should now see mostly `200` responses — the mesh is retrying the 50% of requests that initially fail.
+
+![](../images/waypoints-7.png)
 
 ## Cleanup
 
