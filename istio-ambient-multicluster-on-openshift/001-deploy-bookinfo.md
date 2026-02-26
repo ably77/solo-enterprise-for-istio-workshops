@@ -7,6 +7,8 @@
 ![](../images/deploy-bookinfo-1.png)
 
 ## Prerequisites
+- This lab assumes you have read through and completed any setup from the `000` labs
+
 Ensure the following environment variables are set from the previous labs:
 ```bash
 export CLUSTER1=cluster1

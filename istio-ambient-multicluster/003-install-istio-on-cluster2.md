@@ -6,6 +6,9 @@
 
 ![](../images/install-istio-1.png)
 
+## Prerequisites
+- This lab assumes you have read through and completed any setup from the `000` labs
+
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster2 with your desired context name
 ```bash

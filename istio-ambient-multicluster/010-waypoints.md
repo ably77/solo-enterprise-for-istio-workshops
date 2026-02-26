@@ -10,7 +10,8 @@
 ![](../images/waypoints-1.png)
 
 ## Prerequisites
-This lab assumes you have completed lab `009`. The `bookinfo-backends` namespace must be enrolled in the mesh.
+- This lab assumes you have completed setup from labs `000-004`
+- The `bookinfo-backends` namespace must be enrolled in the mesh.
 
 Ensure the following environment variables are set:
 ```bash

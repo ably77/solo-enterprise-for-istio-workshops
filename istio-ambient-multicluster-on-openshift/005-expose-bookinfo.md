@@ -6,6 +6,9 @@
 
 ![](../images/expose-bookinfo-1.png)
 
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-004`
+
 ## Configure Ingress Gateway and Expose Application on cluster1
 
 Deploy an Istio Ingressgateway

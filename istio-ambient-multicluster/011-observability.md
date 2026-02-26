@@ -5,7 +5,7 @@
 - Inspect istiod metrics to observe control plane health
 
 ## Prerequisites
-This lab assumes you have completed lab `010`. The waypoint for `bookinfo-backends` must be deployed and the namespace enrolled in the mesh.
+- This lab assumes you have completed setup from labs `000-004`
 
 Ensure the following environment variables are set:
 ```bash

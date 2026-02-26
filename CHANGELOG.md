@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.7 - (2-25-26)
+---
+- Add dependencies as prerequisites to each lab
+
 0.0.6 - (2-25-26)
 ---
 - Improvements to README.md

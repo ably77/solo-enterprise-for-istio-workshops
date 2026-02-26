@@ -6,8 +6,9 @@
 - Validate each policy change using the browser or curl
 - Observe policy enforcement in ztunnel logs
 
-### Prerequisites
-This lab assumes that you have completed the setup in `008`
+## Prerequisites
+- This lab assumes you have completed setup from labs `000-004`
+- Setup from lab `005` is optional but recommended
 
 Ensure the following environment variables are set:
 ```bash

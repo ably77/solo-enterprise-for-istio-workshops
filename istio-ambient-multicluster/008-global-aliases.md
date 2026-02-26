@@ -11,7 +11,8 @@
 ![](../images/segments-global-aliases-1.png)
 
 ## Prerequisites
-This lab assumes you have completed lab `007`. The Segment CRs (`acme-segment`, `acquired-segment`) and their namespace labels must be in place — if you ran the cleanup in `007`, re-apply the Segment CRs and namespace labels from that lab before continuing.
+- This lab assumes you have completed setup from labs `000-007`
+- The Segment CRs (`acme-segment`, `acquired-segment`) and their namespace labels must be in place — if you ran the cleanup in `007`, re-apply the Segment CRs and namespace labels from that lab before continuing.
 
 Ensure the following environment variables are set:
 ```bash
