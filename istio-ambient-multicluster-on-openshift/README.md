@@ -1,6 +1,6 @@
 # Istio Ambient Multicluster Workshop — OpenShift
 
-Hands-on workshop for deploying Solo.io's Enterprise Istio Ambient Mesh across two OpenShift clusters, using the Bookinfo sample application.
+Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across two OpenShift clusters, using the Bookinfo sample application.
 
 ## Versions
 
@@ -37,9 +37,10 @@ Hands-on workshop for deploying Solo.io's Enterprise Istio Ambient Mesh across t
 | [008-global-aliases.md](008-global-aliases.md) | Global service aliases |
 | [009-mesh-access-control.md](009-mesh-access-control.md) | Zero-trust access control policies |
 | [010-waypoints.md](010-waypoints.md) | L7 traffic management with waypoints |
-| [011-egress.md](011-egress.md) | Egress control with a waypoint |
-| [012-install-gme-control-plane.md](012-install-gme-control-plane.md) | Deploy Gloo Mesh Enterprise UI |
-| [013-cleanup.md](013-cleanup.md) | Teardown |
+| [011-observability.md](011-observability.md) | Observability — inspecting Istio Ambient metrics |
+| [012-egress.md](012-egress.md) | Egress control with a waypoint |
+| [013-install-gme-control-plane.md](013-install-gme-control-plane.md) | Deploy Gloo Mesh Enterprise UI |
+| [014-cleanup.md](014-cleanup.md) | Teardown |
 
 ## Getting Started
 
