@@ -1,5 +1,11 @@
 # Changelog
 
+0.0.3 - (2-25-26)
+---
+- Update images for global aliases lab
+- Update images for mesh access control lab
+- Update images for GME lab
+
 0.0.2 - (2-25-26)
 ---
 - Remove `solo-istioctl` binary from repo. Instructions for install in `000-tools.md`

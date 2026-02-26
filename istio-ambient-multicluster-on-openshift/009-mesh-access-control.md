@@ -55,6 +55,8 @@ Take a look at the `ztunnel` logs to see the rejection
 kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
 ```
 
+![](../images/auth-pol-1.png)
+
 ### Allow access from istio ingress to productpage
 Allow Istio ingress to access productpage
 ```bash
@@ -78,6 +80,8 @@ But notice that we observe a `401 Unauthorized` for the connnection from product
 kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
 ```
 
+![](../images/auth-pol-2.png)
+
 ### Allow access from productpage to details
 Allow productpage to access details
 ```bash
@@ -93,6 +97,8 @@ curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
 curl -s http://$SVC/productpage | grep -A 10 details
 curl -s http://$SVC/productpage | grep -A 10 reviews
 ```
+
+![](../images/auth-pol-3.png)
 
 ### Allow access from productpage to reviews
 Allow productpage to access reviews
@@ -110,6 +116,8 @@ curl -s http://$SVC/productpage | grep -A 10 details
 curl -s http://$SVC/productpage | grep -A 10 reviews
 ```
 
+![](../images/auth-pol-4.png)
+
 ### Allow access from reviews to ratings
 Allow reviews to access ratings
 ```bash
@@ -125,6 +133,8 @@ curl -s http://$SVC/productpage | grep -A 10 "Simple Bookstore App"
 curl -s http://$SVC/productpage | grep -A 10 details
 curl -s http://$SVC/productpage | grep -A 10 reviews
 ```
+
+![](../images/auth-pol-5.png)
 
 ## Cleanup
 
