@@ -9,7 +9,7 @@
 ![](../images/egress-1.png)
 
 ### Prerequisites
-This lab assumes that you have completed the setup in `009`
+This lab assumes that you have completed the setup in `010`
 
 ### Set environment variables
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 with your desired context name
@@ -176,5 +176,5 @@ At this point we have completed the following objectives
 - Configured an egress gateway using a waypoint
 - Enforced egress policies to control outbound traffic
 
-In the next step `011` we will deploy the Gloo Mesh control plane
+In the next step `012` we will deploy the Gloo Mesh control plane
 ```

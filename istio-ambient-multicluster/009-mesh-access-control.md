@@ -156,4 +156,4 @@ At this point we have completed the following objectives
 - Enforced zero-trust access control policies across bookinfo services
 - Validated authorization policies using Istio AuthorizationPolicy
 
-In the next step `010` we will configure egress with a waypoint
+In the next step `010` we will configure L7 traffic management with waypoints

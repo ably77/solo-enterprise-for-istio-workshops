@@ -35,9 +35,10 @@ Hands-on workshop for deploying Solo.io's Enterprise Istio Ambient Mesh across t
 | [007-segments.md](007-segments.md) | Namespace isolation with Segments |
 | [008-global-aliases.md](008-global-aliases.md) | Global service aliases |
 | [009-mesh-access-control.md](009-mesh-access-control.md) | Zero-trust access control policies |
-| [010-egress.md](010-egress.md) | Egress control with a waypoint |
-| [011-install-gme-control-plane.md](011-install-gme-control-plane.md) | Deploy Gloo Mesh Enterprise UI |
-| [012-cleanup.md](012-cleanup.md) | Teardown |
+| [010-waypoints.md](010-waypoints.md) | L7 traffic management with waypoints |
+| [011-egress.md](011-egress.md) | Egress control with a waypoint |
+| [012-install-gme-control-plane.md](012-install-gme-control-plane.md) | Deploy Gloo Mesh Enterprise UI |
+| [013-cleanup.md](013-cleanup.md) | Teardown |
 
 ## Getting Started
 
