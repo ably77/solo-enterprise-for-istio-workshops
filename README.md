@@ -17,15 +17,18 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 
 | Use Case | Single-cluster (OCP) | Multicluster (OCP) | Multicluster (K8s) | Single-cluster OSS (sidecar) to Enterprise (Ambient) (K8S) |
 |---|:---:|:---:|:---:|:---:|
+| Sidecars |  |  |  | ✓ |
 | Migration |  |  |  | ✓ |
 | Zero Trust (mTLS) | ✓ | ✓ | ✓ | ✓ |
 | Ingress | ✓ | ✓ | ✓ | ✓ |
 | Egress Control | ✓ | ✓ | ✓ | ✓ |
+| Waypoints | | ✓ | ✓ | ✓|
 | Observability | ✓ | ✓ | ✓ | ✓ |
 | Multi-cluster routing | | ✓ | ✓ | |
 | Global service discovery | | ✓ | ✓ | |
 | High Availability / Failover | | ✓ | ✓ | |
-| Multitenancy | | ✓ | ✓ | |
+| Multitenancy (segments) | | ✓ | ✓ | |
+| Global Aliases | | ✓ | ✓ | |
 
 ## Versions
 
