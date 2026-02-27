@@ -1,21 +1,21 @@
-# Istio Ambient Single Cluster Workshop — OpenShift
+# Istio Ambient Single Cluster Workshop
 
-Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a single OpenShift cluster, using the Bookinfo sample application.
+Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a single standard Kubernetes cluster (GKE or any CNCF-conformant cluster), using the Bookinfo sample application.
 
 ## Versions
 
 | Component | Version |
 |---|---|
 | Istio (Solo) | 1.29.0-solo |
-| OpenShift | 4.16.0 – 4.19.30 (latest) |
+| Kubernetes | >= 1.29 |
 
 ## Prerequisites
 
 - A valid Solo.io license key
 - `solo-istioctl` — see [000-tools.md](000-tools.md)
 - `helm`
-- `oc` (OpenShift CLI)
-- One OpenShift cluster (4.16+)
+- `kubectl`
+- One Kubernetes cluster (>= 1.29)
 - (Optional) Vegeta for load generation — see [000-tools.md](000-tools.md)
 
 ## Labs

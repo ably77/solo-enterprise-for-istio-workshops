@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.12 - (2-27-26)
+---
+- New Workshop: Single cluster Solo Enterprise for Istio Ambient Workshop (tested on GKE)
+
 0.0.11 - (2-27-26)
 ---
 - Updates to main README.md

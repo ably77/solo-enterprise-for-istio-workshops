@@ -1,0 +1,19 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: jsonplaceholder-egress
+  namespace: egress
+spec:
+  targetRefs:
+  - kind: ServiceEntry
+    group: networking.istio.io
+    name: jsonplaceholder.typicode.com
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster1.local/ns/bookinfo-backends/sa/bookinfo-reviews"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/posts"]
