@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.14 - (2-27-26)
+---
+- Update expose bookinfo lab with gw-options extension reference example
+
 0.0.13 - (2-27-26)
 ---
 - README updates
