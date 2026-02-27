@@ -1,26 +1,29 @@
 # Solo Enterprise for Istio Workshops
 
-Hands-on workshops for deploying and operating **Solo Enterprise for Istio** with Ambient Mesh in multicluster environments. Workshops cover zero-trust security, multi-cluster routing, global service discovery, and observability using the Bookinfo sample application.
+Hands-on workshops for deploying and operating **Solo Enterprise for Istio** with Ambient Mesh. Workshops cover zero-trust security, ingress, egress control, observability, multi-cluster routing, and global service discovery using the Bookinfo sample application.
 
 ![](/images/intro-1.png)
 
 ## Workshops
 
-| Workshop | Platform | Description |
-|---|---|---|
-| [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Kubernetes | Ambient mesh across two Kubernetes clusters |
-| [`istio-ambient-multicluster-on-openshift`](istio-ambient-multicluster-on-openshift/) | OpenShift | Ambient mesh across two OpenShift clusters |
-| [`istio-oss-sidecar-to-enterprise-ambient`](istio-oss-sidecar-to-enterprise-ambient/) | Kubernetes | In-place migration from OSS Istio sidecar to Solo Enterprise Ambient |
+| Workshop | Platform | Clusters | Description |
+|---|---|---|---|
+| [`istio-ambient-single-cluster-on-openshift`](istio-ambient-single-cluster-on-openshift/) | OpenShift | 1 | Single-cluster ambient mesh on OpenShift — ingress, egress, observability with OpenShift User Workload Monitoring. Configured multicluster-ready for easy extension. |
+| [`istio-ambient-multicluster-on-openshift`](istio-ambient-multicluster-on-openshift/) | OpenShift | 2 | Ambient mesh across two OpenShift clusters — multicluster routing, global service discovery, failover, zero-trust access control. |
+| [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Kubernetes | 2 | Ambient mesh across two Kubernetes clusters |
+| [`istio-oss-sidecar-to-enterprise-ambient`](istio-oss-sidecar-to-enterprise-ambient/) | Kubernetes | 1 | In-place migration from OSS Istio sidecar to Solo Enterprise Ambient |
 
 ## Use Cases Covered
 
-- Zero Trust (mTLS)
-- Ingress
-- Observability
-- Multi-cluster routing
-- Global service discovery
-- High Availability / Failover
-- Egress Control
+| Use Case | Single-cluster (OCP) | Multicluster (OCP) | Multicluster (K8s) | Sidecar Migration |
+|---|:---:|:---:|:---:|:---:|
+| Zero Trust (mTLS) | ✓ | ✓ | ✓ | ✓ |
+| Ingress | ✓ | ✓ | ✓ | ✓ |
+| Egress Control | ✓ | ✓ | ✓ | ✓ |
+| Observability (UWM) | ✓ | | | |
+| Multi-cluster routing | | ✓ | ✓ | |
+| Global service discovery | | ✓ | ✓ | |
+| High Availability / Failover | | ✓ | ✓ | |
 
 ## Versions
 
@@ -34,14 +37,14 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 ## Prerequisites
 
 - A valid Solo.io license key
-- `solo-istioctl` ([install guide](istio-ambient-multicluster/000-tools.md))
-- `meshctl` ([install guide](istio-ambient-multicluster/000-tools.md))
+- `solo-istioctl` ([install guide](istio-ambient-single-cluster-on-openshift/000-tools.md))
 - `helm`
-- Two clusters (Kubernetes ≥ 1.29 or OpenShift 4.16+)
+- One or two clusters depending on the workshop (see table above)
+- `meshctl` — multicluster workshops only ([install guide](istio-ambient-multicluster-on-openshift/000-tools.md))
 
 ## Getting Started
 
 1. Clone this repo
 2. Obtain a Solo.io trial license key
-3. Choose a workshop directory based on your platform
+3. Choose a workshop from the table above
 4. Follow the labs in order starting with `000-introduction.md`
