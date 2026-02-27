@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.9 - (2-27-26)
+---
+- New Workshop: Solo Enterprise for Istio Ambient Workshop on OpenShift
+
 0.0.8 - (2-26-26)
 ---
 - New Workshop: OSS Istio Sidecar to Solo Enterprise Ambient
