@@ -50,14 +50,14 @@ docker pull docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
 
 **GME Images (Optional, we can upload later for phase 2 of POC)**
 ```bash
+docker pull gcr.io/gloo-mesh/gloo-mesh-mgmt-server:2.12.0
 docker pull gcr.io/gloo-mesh/gloo-mesh-agent:2.12.0
 docker pull gcr.io/gloo-mesh/gloo-mesh-apiserver:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-envoy:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-mgmt-server:2.12.0
 docker pull gcr.io/gloo-mesh/gloo-mesh-ui:2.12.0
-docker pull gcr.io/gloo-mesh/otel-collector:0.2.3
-docker pull gcr.io/gloo-mesh/prometheus:v2.53.4
-docker pull gcr.io/gloo-mesh/redis:7.4.2-alpine
-docker pull quay.io/prometheus-operator/prometheus-config-reloader:v0.74.0
+docker pull gcr.io/gloo-mesh/gloo-mesh-envoy:2.12.0
+docker pull docker.io/redis:7.4.7-alpine
+docker pull gcr.io/gloo-mesh/prometheus:v3.9.1
+docker pull quay.io/prometheus-operator/prometheus-config-reloader:v0.89.0
+docker pull gcr.io/gloo-mesh/gloo-otel-collector:0.2.7
 ```
 

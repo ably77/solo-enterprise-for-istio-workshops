@@ -378,7 +378,7 @@ kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUS
 
 With fault injection you saw raw failures reaching the caller. Retries let the mesh absorb transient failures transparently.
 
-Re-apply the 50% abort fault to simulate an unreliable upstream:
+Apply a single VirtualService that combines the 50% abort fault with a retry policy. Fault injection and retries must be in the same `http` rule — Istio does not support two VirtualServices for the same host:
 ```bash
 kubectl apply --context $CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
@@ -395,25 +395,7 @@ spec:
         httpStatus: 503
         percentage:
           value: 50
-    route:
-    - destination:
-        host: reviews
-EOF
-```
-
-Apply a retry policy — the mesh will retry on `5xx` up to 3 times before returning a failure:
-```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: reviews-retry
-  namespace: bookinfo-backends
-spec:
-  hosts:
-  - reviews
-  http:
-  - retries:
+    retries:
       attempts: 3
       perTryTimeout: 500ms
       retryOn: "5xx"
@@ -423,7 +405,7 @@ spec:
 EOF
 ```
 
-Send the same 10 requests:
+Send 10 requests:
 ```bash
 for i in $(seq 1 10); do
   kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
@@ -434,7 +416,7 @@ except urllib.error.HTTPError as e: print(e.code)"
 done
 ```
 
-You should now see mostly `200` responses — the mesh is retrying the 50% of requests that initially fail.
+You should now see mostly `200` responses. Each retry is an independent trial against the 50% fault — the probability all 3 attempts fail is 0.5³ = 12.5%. The mesh is absorbing the majority of faults transparently before they reach the caller.
 
 ![](../images/waypoints-7.png)
 
@@ -442,7 +424,7 @@ You should now see mostly `200` responses — the mesh is retrying the 50% of re
 
 Remove all VirtualServices and the HTTPRoute created in this lab:
 ```bash
-kubectl delete virtualservice reviews-fault reviews-retry -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
+kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
 kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
 ```
 

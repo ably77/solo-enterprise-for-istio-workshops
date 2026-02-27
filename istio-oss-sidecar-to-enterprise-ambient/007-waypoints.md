@@ -10,8 +10,8 @@
 ![](../images/waypoints-1.png)
 
 ## Prerequisites
-- This lab assumes you have completed setup from labs `000-004`
-- The `bookinfo-backends` namespace must be enrolled in the mesh.
+- This lab assumes you have completed labs `000`–`005`
+- The `bookinfo-backends` namespace must be enrolled in ambient mesh
 
 Ensure the following environment variables are set:
 ```bash
@@ -24,7 +24,7 @@ In Istio Ambient, ztunnel handles Layer 4 (mTLS, connection-level authorization)
 
 Waypoints are Envoy-based proxies created using the Kubernetes Gateway API. Once deployed and enrolled, all inbound traffic to services in the targeted namespace flows through the waypoint, enabling the full set of L7 features without any changes to application code.
 
-## Deploy a namespace-scoped waypoint
+## Deploy a Namespace-Scoped Waypoint
 
 Deploy a waypoint for the `bookinfo-backends` namespace:
 ```bash
@@ -84,7 +84,7 @@ EOF
 
 ## L7 Authorization Policy
 
-Lab `009` used L4 authorization via ztunnel — policies that allow or deny based on workload identity (SPIFFE). Because ztunnel operates at L4, it cannot inspect HTTP attributes such as method or path.
+Lab `006` used L4 authorization via ztunnel — policies that allow or deny based on workload identity (SPIFFE). Because ztunnel operates at L4, it cannot inspect HTTP attributes such as method or path.
 
 With a waypoint in place, you can enforce at the HTTP level. Apply an L7 `AuthorizationPolicy` that restricts the `reviews` service to only allow `GET` requests:
 ```bash
@@ -157,9 +157,9 @@ Apply them now:
 kubectl apply --context $CLUSTER1 -f bookinfo/bookinfo-waypoint-services.yaml
 ```
 
-### Story 1 — Canary shift to stable
+### Story 1 — Canary Shift to Stable
 
-The team wants to gradually shift traffic from the current production version (v1, no stars) to `reviews-stable` (v3, red stars). To make the canary signal unambiguous, patch the `reviews` Service selector to pin it to `version: v1` before starting — this eliminates the round-robin noise across all three pod versions:
+The team wants to gradually shift traffic from the current production version (v1, no stars) to `reviews-stable` (v3, red stars). Patch the `reviews` Service selector to pin it to `version: v1` before starting to make the canary signal unambiguous:
 ```bash
 kubectl patch svc reviews -n bookinfo-backends --context $CLUSTER1 \
   --type=merge -p '{"spec":{"selector":{"app":"reviews","version":"v1"}}}'
@@ -171,13 +171,11 @@ SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-hea
 echo http://$SVC/productpage
 ```
 
-### How the waypoint enables canary shifting
+### How the Waypoint Enables Canary Shifting
 
 In traditional Kubernetes, traffic splitting requires a service mesh sidecar or an external load balancer to intercept and weight requests. In Istio Ambient, ztunnel handles all of this at L4 — but L4 means connection-level routing only. ztunnel cannot inspect HTTP attributes or distribute individual requests across weighted backends.
 
 The waypoint changes this. Because all inbound traffic to `bookinfo-backends` now flows through the waypoint, Envoy sits in the path of every HTTP request before it reaches a pod. The `HTTPRoute` resource programs the waypoint with weighted backend rules: when a request arrives for the `reviews` Service, the waypoint evaluates the route, selects a backend (`reviews` or `reviews-stable`) according to the configured weights, and forwards the request to a pod in that service — all transparently, with no changes to the application or the client.
-
-This is why the waypoint is a prerequisite for canary shifting in Ambient: without it, there is no L7 proxy in the data path to enforce the weighted routing.
 
 Now apply an HTTPRoute to introduce the canary at 20%:
 ```bash
@@ -232,11 +230,9 @@ EOF
 
 All requests should now consistently show red stars — the canary is complete.
 
-### Story 2 — Header-based routing for premium users
+### Story 2 — Header-Based Routing for Premium Users
 
-The team wants to route users with the `end-user: premium-user` header to `reviews-premium` (v2, black stars), while all other traffic continues to `reviews`. This lets premium users get a distinct experience without affecting the general population.
-
-Apply an `HTTPRoute` with a header match rule:
+Route users with the `end-user: premium-user` header to `reviews-premium` (v2, black stars), while all other traffic continues to `reviews`:
 ```bash
 kubectl apply --context $CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
@@ -264,7 +260,7 @@ spec:
 EOF
 ```
 
-Verify a standard request goes to the default `reviews` — still pinned to v1 (no stars):
+Verify a standard request goes to the default `reviews` (no stars — still pinned to v1):
 ```bash
 kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
   python3 -c "import urllib.request, json; print(json.dumps(json.load(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0')), indent=2))"
@@ -281,7 +277,7 @@ print(json.dumps(json.load(urllib.request.urlopen(req)), indent=2))"
 
 The response from `reviews-v2` includes a `"color": "black"` field in the ratings — confirming the header match routed the request to `reviews-premium`.
 
-You can also verify via the productpage browser UI. The productpage forwards the `end-user` cookie as a header to downstream services. Log in as `premium-user` using the **Sign in** button (any password), then refresh — you should consistently see black stars.
+You can also verify via the productpage browser UI. Log in as `premium-user` using the **Sign in** button (any password), then refresh — you should consistently see black stars.
 
 ![](../images/waypoints-4.png)
 
@@ -439,20 +435,19 @@ kubectl patch svc reviews -n bookinfo-backends --context $CLUSTER1 \
   --type=merge -p '{"spec":{"selector":{"app":"reviews","version":null}}}'
 ```
 
-The waypoint and namespace label can remain in place for lab `011` — they do not conflict with the egress configuration.
-
-To fully remove the waypoint if needed:
+To fully remove the waypoint:
 ```bash
 kubectl label namespace bookinfo-backends istio.io/use-waypoint- --context $CLUSTER1
 kubectl delete gateway waypoint -n bookinfo-backends --context $CLUSTER1
 ```
 
 ## Next Steps
+
 At this point we have completed the following objectives:
 - Deployed a namespace-scoped waypoint for `bookinfo-backends`
 - Applied an L7 AuthorizationPolicy to enforce HTTP method restrictions
 - Configured weighted traffic splitting across `reviews` service versions
 - Injected delays and HTTP aborts to simulate upstream failures
-- Configured retries and timeouts to handle transient failures
+- Configured retries to handle transient failures
 
-In the next step `011` we will inspect ztunnel and istiod metrics
+In the next step `008` we will inspect mesh metrics using the Istio observability endpoints.

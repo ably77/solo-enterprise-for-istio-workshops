@@ -112,12 +112,12 @@ redis:
     #  tag: 7.4.2-alpine
 prometheus:
   enabled: true
-  server:
+  #server:
     # override
     #image:
     #  registry: gcr.io/gloo-mesh/prometheus
     #  tag: v3.5.0
-  prometheus-server-migration:
+  #prometheus-server-migration:
     # override
     #image:
     #  pullPolicy: IfNotPresent
