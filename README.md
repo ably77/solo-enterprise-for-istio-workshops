@@ -8,10 +8,10 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 
 | Workshop | Platform | Clusters | Description |
 |---|---|---|---|
-| [`istio-ambient-single-cluster`](istio-ambient-single-cluster/) | Standard Kubernetes | 1 | Single-cluster ambient mesh on standard Kubernetes (GKE) — zero trust, ingress, egress, waypoints, observability. |
+| [`istio-ambient-single-cluster`](istio-ambient-single-cluster/) | Standard Kubernetes | 1 | Single-cluster ambient mesh on standard Kubernetes — zero trust, ingress, egress, waypoints, observability. |
 | [`istio-ambient-single-cluster-on-openshift`](istio-ambient-single-cluster-on-openshift/) | OpenShift | 1 | Single-cluster ambient mesh on OpenShift — ingress, egress, waypoints, observability with OpenShift User Workload Monitoring. |
 | [`istio-ambient-multicluster-on-openshift`](istio-ambient-multicluster-on-openshift/) | OpenShift | 2 | Ambient mesh across two OpenShift clusters — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Gloo UI. |
-| [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Standard Kubernetes | 2 | Ambient mesh across two standard Kubernetes clusters (tested on GKE) — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Gloo UI. |
+| [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Standard Kubernetes | 2 | Ambient mesh across two standard Kubernetes clusters — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Gloo UI. |
 | [`istio-oss-sidecar-to-enterprise-ambient`](istio-oss-sidecar-to-enterprise-ambient/) | Standard Kubernetes | 1 | In-place migration from OSS Istio sidecar to Solo Enterprise Ambient, ingress, egress, waypoints, observability, zero-trust access control |
 
 ## Use Cases Covered
