@@ -24,6 +24,11 @@ metadata:
   name: ingress
   namespace: istio-system
 spec:
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: gw-options
   gatewayClassName: istio
   listeners:
   - name: http
@@ -32,6 +37,17 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gw-options
+  namespace: istio-system
+data:
+  service: |
+    metadata:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 EOF
 ```
 

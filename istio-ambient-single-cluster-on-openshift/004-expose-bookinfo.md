@@ -27,6 +27,11 @@ metadata:
   name: ingress
   namespace: istio-system
 spec:
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: gw-options
   gatewayClassName: istio
   listeners:
   - name: http
@@ -35,6 +40,17 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gw-options
+  namespace: istio-system
+data:
+  service: |
+    metadata:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 EOF
 ```
 
@@ -54,7 +70,7 @@ istiod-5ccd964945-9kbjg         1/1     Running   0          7m46s
 Expected output for services:
 ```
 NAME            TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                                 AGE
-ingress-istio   LoadBalancer   172.30.133.188   <external-ip>   15021:30534/TCP,80:31705/TCP            14s
+ingress-istio   LoadBalancer   172.30.133.188   <external-ip>   80:31705/TCP            14s
 istiod          ClusterIP      172.30.128.33    <none>          15010/TCP,15012/TCP,443/TCP,15014/TCP   7m46s
 ```
 
