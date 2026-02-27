@@ -6,6 +6,8 @@
 - Enable access logging on the egress waypoint
 - Enforce egress authorization policies to restrict allowed paths and source principals
 
+![](../images/egress-1.png)
+
 ## Prerequisites
 - This lab assumes you have completed setup from labs `000-003`
 

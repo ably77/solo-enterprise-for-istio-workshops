@@ -4,6 +4,8 @@
 - Deploy the Bookinfo sample application across two namespaces on a single cluster
 - Validate the application is accessible via port-forward
 
+![](../images/deploy-bookinfo-singlecluster-1.png)
+
 ## Prerequisites
 - This lab assumes you have read through and completed any setup from the `000` labs
 

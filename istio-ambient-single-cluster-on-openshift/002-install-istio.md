@@ -4,6 +4,8 @@
 - Deploy Istio Ambient Mesh on OpenShift with a Helm-based install
 - Configure the cluster with multicluster-ready trust and network topology settings
 
+![](../images/install-istio-singlecluster-1.png)
+
 ## Prerequisites
 - This lab assumes you have read through and completed any setup from the `000` labs
 

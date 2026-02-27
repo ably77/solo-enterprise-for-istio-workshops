@@ -4,6 +4,8 @@
 - Enroll the Bookinfo namespaces into Ambient Mesh
 - Validate workloads are enrolled using `istioctl`
 
+![](../images/enroll-apps-in-mesh-singlecluster-1.png)
+
 ## Prerequisites
 - This lab assumes you have completed setup from labs `000-002`
 

@@ -5,6 +5,8 @@
 - Expose the Bookinfo application via an HTTPRoute
 - Observe ztunnel intercepting and securing traffic across the call chain
 
+![](../images/expose-bookinfo-singlecluster-1.png)
+
 ## Prerequisites
 - This lab assumes you have completed setup from labs `000-003`
 
