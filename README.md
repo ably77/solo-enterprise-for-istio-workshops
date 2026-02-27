@@ -39,30 +39,6 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 - `helm`
 - Two clusters (Kubernetes ≥ 1.29 or OpenShift 4.16+)
 
-## Workshop Structure
-
-Each workshop follows the same numbered lab sequence:
-
-```
-000-introduction.md                   Overview and objectives
-000-prerequisites.md                  Requirements and image list
-000-tools.md                          Tool installation
-001-deploy-bookinfo.md                Deploy sample application
-002-install-istio-*.md                Install Istio on cluster 1
-003-install-istio-*.md                Install Istio on cluster 2
-004-enroll-apps-*.md                  Enroll apps in the mesh
-005-expose-bookinfo.md                Configure ingress gateway
-006-multicluster-global-mesh.md       Link the clusters
-007-segments.md                       Traffic segmentation
-008-global-aliases.md                 Global service aliases
-009-mesh-access-control.md            Zero-trust access policies
-010-waypoints.md                      L7 traffic management with waypoints
-011-observability.md                  Observability — inspecting Istio Ambient metrics
-012-egress.md                         Egress control
-013-install-gme-*.md                  Install Gloo Mesh Enterprise UI
-014-cleanup.md                        Teardown
-```
-
 ## Getting Started
 
 1. Clone this repo
