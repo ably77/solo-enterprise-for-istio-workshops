@@ -5,6 +5,7 @@
 - New Workshop: OSS Istio Sidecar to Solo Enterprise Ambient
 - Fixes for waypoint lab in multicluster demos
 - Update README.md
+- Move image list into `000-prerequisites.md`
 
 0.0.7 - (2-25-26)
 ---
