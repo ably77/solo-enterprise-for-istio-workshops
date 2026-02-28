@@ -15,7 +15,7 @@ Even though this is a single-cluster workshop, the install is intentionally conf
 
 | Setting | Single-cluster effect | Why it matters for multicluster |
 |---|---|---|
-| `CLUSTER1=cluster1` as logical name | Names the cluster in mesh config | Multicluster uses `cluster1`/`cluster2` as distinct identities |
+| `MESH_NAME_CLUSTER1=cluster1` for mesh identity | Names the cluster in mesh config | Multicluster uses `cluster1`/`cluster2` as distinct identities |
 | `topology.istio.io/network` label | Tags the network identity | Required for cross-cluster HBONE routing |
 | Per-cluster trust domain (`$MESH_NAME_CLUSTER1.local`) | Non-default trust domain | Avoids trust domain collision when adding cluster2 |
 | Shared root CA (`cacerts` secret) | Custom cert hierarchy | Allows both clusters to share a root of trust |
@@ -30,8 +30,6 @@ Even though this is a single-cluster workshop, the install is intentionally conf
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
 export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
-
-> **Tip:** If your kubectl context is not named `cluster1`, rename it: `kubectl config rename-context <current-name> cluster1`
 
 Export your Solo.io license key and Istio version:
 ```bash
