@@ -19,10 +19,8 @@ With Ambient, enrollment is a single namespace label. ztunnel, running as a Daem
 Ensure the following environment variables are set:
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 
 export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
 ## Enroll Apps to Ambient Mesh on cluster1
