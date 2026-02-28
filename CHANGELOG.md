@@ -1,7 +1,8 @@
 # Changelog
 
-0.0.16 - (2-27-26)
+0.1.0 - (2-27-26)
 ---
+- Remove unused `MESH_NAME_CLUSTER1` reference from `istio-oss-sidecar-to-enterprise-ambient` workshop
 
 0.0.15 - (2-27-26)
 ---

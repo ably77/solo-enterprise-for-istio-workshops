@@ -17,7 +17,6 @@
 
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
 export ISTIO_VERSION=1.29.0
 ```
