@@ -1,5 +1,9 @@
 # Changelog
 
+0.0.15 - (2-27-26)
+---
+- Move gateway service annotations to a callout
+
 0.0.14 - (2-27-26)
 ---
 - Update expose bookinfo lab with gw-options extension reference example
