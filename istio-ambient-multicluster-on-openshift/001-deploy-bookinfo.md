@@ -11,51 +11,54 @@
 
 Ensure the following environment variables are set from the previous labs:
 ```bash
-export CLUSTER1=cluster1
-export CLUSTER2=cluster2
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
+
+export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
 ## Deploy Bookinfo on cluster1
 
 Openshift SCC:
 ```bash
-oc --context ${CLUSTER1} adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-frontends
-oc --context ${CLUSTER1} adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-backends
+oc --context $KUBECONTEXT_CLUSTER1 adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-frontends
+oc --context $KUBECONTEXT_CLUSTER1 adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-backends
 ```
 
 Deploy bookinfo frontends in bookinfo-frontends namespace
 ```bash
-kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $CLUSTER1
+kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Deploy bookinfo backends in bookinfo-backends namespace
 ```bash
-kubectl apply -f bookinfo/bookinfo-backends.yaml --context $CLUSTER1
+kubectl apply -f bookinfo/bookinfo-backends.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for the applications to be deployed
 ```bash
-for deploy in $(kubectl get deploy -n bookinfo-frontends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for frontend deployment '$deploy' to be ready in $CLUSTER1..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $CLUSTER1
+for deploy in $(kubectl get deploy -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for frontend deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER1..."
+  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
   done
 
-for deploy in $(kubectl get deploy -n bookinfo-backends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for backend deployment '$deploy' to be ready in $CLUSTER1..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $CLUSTER1
+for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for backend deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER1..."
+  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
   done
 ```
 
 Update the reviews service to display which cluster it is coming from
 ```bash
-kubectl --context ${CLUSTER1} -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=${CLUSTER1}
-kubectl --context ${CLUSTER1} -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=${CLUSTER1}
-kubectl --context ${CLUSTER1} -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=${CLUSTER1}
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER1
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER1
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER1
 ```
 
 Port forward to productpage in bookinfo-frontends namespace to validate application is working
 ```bash
-kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $CLUSTER1
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 ```
 Navigate to http://localhost:9080/productpage
 
@@ -63,43 +66,43 @@ Navigate to http://localhost:9080/productpage
 
 Openshift SCC:
 ```bash
-oc --context ${CLUSTER2} adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-frontends
-oc --context ${CLUSTER2} adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-backends
+oc --context $KUBECONTEXT_CLUSTER2 adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-frontends
+oc --context $KUBECONTEXT_CLUSTER2 adm policy add-scc-to-group anyuid system:serviceaccounts:bookinfo-backends
 ```
 
 Deploy bookinfo frontends in bookinfo-frontends namespace
 ```bash
-kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $CLUSTER2
+kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $KUBECONTEXT_CLUSTER2
 ```
 
 Deploy bookinfo backends in bookinfo-backends namespace
 ```bash
-kubectl apply -f bookinfo/bookinfo-backends.yaml --context $CLUSTER2
+kubectl apply -f bookinfo/bookinfo-backends.yaml --context $KUBECONTEXT_CLUSTER2
 ```
 
 Wait for the applications to be deployed
 ```bash
-for deploy in $(kubectl get deploy -n bookinfo-frontends --context $CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for frontend deployment '$deploy' to be ready in $CLUSTER2..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $CLUSTER2
+for deploy in $(kubectl get deploy -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for frontend deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER2..."
+  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER2
   done
 
-for deploy in $(kubectl get deploy -n bookinfo-backends --context $CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for backend deployment '$deploy' to be ready in $CLUSTER2..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $CLUSTER2
+for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for backend deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER2..."
+  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER2
   done
 ```
 
 Update the reviews service to display which cluster it is coming from
 ```bash
-kubectl --context ${CLUSTER2} -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=${CLUSTER2}
-kubectl --context ${CLUSTER2} -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=${CLUSTER2}
-kubectl --context ${CLUSTER2} -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=${CLUSTER2}
+kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER2
+kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER2
+kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER2
 ```
 
 Port forward to productpage in bookinfo-frontends namespace to validate application is working
 ```bash
-kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $CLUSTER2
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER2
 ```
 Navigate to http://localhost:9080/productpage
 

@@ -27,13 +27,13 @@ Useful commands:
 ./solo-istioctl proxy-status
 
 # Debug ztunnel workloads (useful after Phase 2 migration)
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1
 
 # Debug waypoints
 ./solo-istioctl waypoint
 
 # Uninstall Istio when iterating
-./solo-istioctl uninstall --purge -y --context $CLUSTER1
+./solo-istioctl uninstall --purge -y --context $KUBECONTEXT_CLUSTER1
 ```
 
 > **Note:** In Phase 1 (OSS Istio), you can also use the community `istioctl` binary for validation. `solo-istioctl` is a superset and works with both OSS and Solo Istio installs.

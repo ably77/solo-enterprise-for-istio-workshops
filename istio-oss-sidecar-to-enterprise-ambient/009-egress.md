@@ -14,7 +14,8 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Deploy the Egress Waypoint
@@ -22,7 +23,7 @@ export CLUSTER1=cluster1
 Create a dedicated `egress` namespace and deploy a shared waypoint. This waypoint serves as a centralized control point for outbound traffic to external services:
 
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -50,12 +51,12 @@ EOF
 
 Wait for the waypoint to be ready:
 ```bash
-kubectl rollout status deployment/egress-waypoint -n egress --context $CLUSTER1
+kubectl rollout status deployment/egress-waypoint -n egress --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify the egress waypoint pod is running:
 ```bash
-kubectl get pods -n egress --context $CLUSTER1
+kubectl get pods -n egress --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:
@@ -66,7 +67,7 @@ egress-waypoint-<hash>             1/1     Running   0          8s
 
 Enable access logging on the egress waypoint:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -88,7 +89,7 @@ EOF
 Create a `ServiceEntry` to represent the external service `jsonplaceholder.typicode.com`. The `istio.io/use-waypoint` label on the ServiceEntry instructs ztunnel to route traffic destined for this host through the egress waypoint:
 
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -109,12 +110,12 @@ EOF
 
 Open a second terminal and tail the egress waypoint logs:
 ```bash
-kubectl logs -n egress deploy/egress-waypoint -f --context $CLUSTER1
+kubectl logs -n egress deploy/egress-waypoint -f --context $KUBECONTEXT_CLUSTER1
 ```
 
 In your original terminal, exec into `reviews-v1` and send a request to the external service:
 ```bash
-kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $CLUSTER1 -- \
+kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl -sI jsonplaceholder.typicode.com/posts | grep envoy
 ```
 
@@ -137,12 +138,12 @@ Apply an egress authorization policy that restricts access to `jsonplaceholder.t
 ```bash
 cat auth-policy/egress-auth.yaml
 echo
-kubectl apply -f auth-policy/egress-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/egress-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify an allowed request succeeds — `reviews-v1` calling `/posts` with `GET`:
 ```bash
-kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $CLUSTER1 -- \
+kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/posts
 ```
 
@@ -150,7 +151,7 @@ This request should succeed (`200 OK`).
 
 Now try the `/comments` path, which is not in the allowed paths:
 ```bash
-kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $CLUSTER1 -- \
+kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/comments
 ```
 
@@ -158,7 +159,7 @@ You should see `RBAC: access denied` — the egress policy restricts access to `
 
 Try from the `ratings` service, which is not an allowed source principal:
 ```bash
-kubectl exec deploy/ratings-v1 -n bookinfo-backends --context $CLUSTER1 -- \
+kubectl exec deploy/ratings-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/posts
 ```
 
@@ -166,7 +167,7 @@ You should also see `RBAC: access denied` — the policy allows only `bookinfo-r
 
 Check the egress waypoint logs to see the RBAC deny entries:
 ```bash
-kubectl logs -n egress deploy/egress-waypoint --context $CLUSTER1 | grep rbac
+kubectl logs -n egress deploy/egress-waypoint --context $KUBECONTEXT_CLUSTER1 | grep rbac
 ```
 
 Expected log entry for a denied request:
@@ -177,11 +178,11 @@ Expected log entry for a denied request:
 ## Cleanup
 
 ```bash
-kubectl delete authorizationpolicy jsonplaceholder-egress -n egress --context $CLUSTER1 --ignore-not-found
-kubectl delete serviceentry jsonplaceholder.typicode.com -n egress --context $CLUSTER1 --ignore-not-found
-kubectl delete telemetry enable-access-logging -n egress --context $CLUSTER1 --ignore-not-found
-kubectl delete gateway egress-waypoint -n egress --context $CLUSTER1 --ignore-not-found
-kubectl delete namespace egress --context $CLUSTER1 --ignore-not-found
+kubectl delete authorizationpolicy jsonplaceholder-egress -n egress --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+kubectl delete serviceentry jsonplaceholder.typicode.com -n egress --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+kubectl delete telemetry enable-access-logging -n egress --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+kubectl delete gateway egress-waypoint -n egress --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+kubectl delete namespace egress --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
 ## Next Steps

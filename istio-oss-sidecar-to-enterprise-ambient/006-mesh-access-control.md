@@ -12,7 +12,8 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Access Control
@@ -23,20 +24,20 @@ Because workloads are now in ambient mode, ztunnel enforces all L4 authorization
 
 Check that the application pods are running in ambient mode:
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Set the `SVC` variable to the ingress gateway LoadBalancer address:
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 ```
 
 > **Important:** Do NOT use `kubectl port-forward` to test authorization policies. Port-forward connects directly to the pod via the Kubernetes API server and bypasses ztunnel entirely — policies will appear to have no effect. You must send traffic through the ingress gateway so it flows through the real network path that ztunnel intercepts.
 >
 > **No LoadBalancer?** If your cluster has no external LoadBalancer, use port-forward to the *ingress gateway service* (not the productpage service directly), set `SVC=localhost:8080`, and forward the ingress port:
 > ```bash
-> kubectl port-forward svc/ingress-istio -n istio-system 8080:80 --context $CLUSTER1
+> kubectl port-forward svc/ingress-istio -n istio-system 8080:80 --context $KUBECONTEXT_CLUSTER1
 > ```
 > Traffic through this port-forward still passes through the ingress gateway Envoy → ztunnel → productpage path, so policies ARE enforced.
 
@@ -58,7 +59,7 @@ Apply a deny-all authorization policy to both bookinfo namespaces. This establis
 ```bash
 cat auth-policy/allow-nothing.yaml
 echo
-kubectl apply -f auth-policy/allow-nothing.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/allow-nothing.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 If you refresh the bookinfo page in the browser you should now see `upstream connect error or disconnect/reset before headers. reset reason: connection termination`
@@ -70,7 +71,7 @@ curl -s http://$SVC/productpage
 
 Take a look at the `ztunnel` logs to see the rejection — ztunnel is enforcing the policy at the connection level:
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 ![](../images/auth-pol-1.png)
@@ -81,7 +82,7 @@ Allow the Istio ingress gateway to access productpage:
 ```bash
 cat auth-policy/productpage-auth.yaml
 echo
-kubectl apply -f auth-policy/productpage-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/productpage-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Refresh the application in the browser — you should now be able to access the productpage app, but notice that the details, ratings, and reviews applications are unavailable.
@@ -95,7 +96,7 @@ curl -s http://$SVC/productpage | grep -A 10 reviews
 
 Take a look at the `ztunnel` logs — this time you will see a successful connection from the ingress gateway to productpage, but a `401 Unauthorized` for connections from productpage to reviews, ratings, and details:
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 ![](../images/auth-pol-2.png)
@@ -105,7 +106,7 @@ kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
 ```bash
 cat auth-policy/details-auth.yaml
 echo
-kubectl apply -f auth-policy/details-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/details-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Refresh the application — productpage and details should now be accessible, but ratings and reviews are still unavailable.
@@ -124,7 +125,7 @@ curl -s http://$SVC/productpage | grep -A 10 reviews
 ```bash
 cat auth-policy/reviews-auth.yaml
 echo
-kubectl apply -f auth-policy/reviews-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/reviews-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Refresh the application — productpage, details, and reviews should now be accessible. Ratings is still blocked (no stars visible).
@@ -143,7 +144,7 @@ curl -s http://$SVC/productpage | grep -A 10 reviews
 ```bash
 cat auth-policy/ratings-auth.yaml
 echo
-kubectl apply -f auth-policy/ratings-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/ratings-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 The application should now be fully accessible. You have established full zero-trust using Istio authorization policies enforced by ztunnel — without sidecars.
@@ -161,8 +162,8 @@ curl -s http://$SVC/productpage | grep -A 10 reviews
 
 Remove the authorization policies:
 ```bash
-kubectl delete authorizationpolicies --all -n bookinfo-frontends --context $CLUSTER1
-kubectl delete authorizationpolicies --all -n bookinfo-backends --context $CLUSTER1
+kubectl delete authorizationpolicies --all -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl delete authorizationpolicies --all -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Next Steps

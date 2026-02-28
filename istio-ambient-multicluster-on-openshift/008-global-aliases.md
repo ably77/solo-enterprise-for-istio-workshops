@@ -16,8 +16,11 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
-export CLUSTER2=cluster2
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
+
+export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
 ## Background
@@ -39,7 +42,7 @@ Aliases are **additive** — both the default segment hostname and all alias hos
 
 Update `acme-segment` on `cluster1` to include all four alias patterns:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: admin.solo.io/v1alpha1
 kind: Segment
 metadata:
@@ -64,7 +67,7 @@ EOF
 
 Update `acquired-segment` on `cluster2` with a simple alias for the Acquired Company's naming convention:
 ```bash
-kubectl apply --context $CLUSTER2 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER2 -f - <<EOF
 apiVersion: admin.solo.io/v1alpha1
 kind: Segment
 metadata:
@@ -82,7 +85,7 @@ EOF
 Pattern 1 requires no service labels and is active immediately after the Segment CR is updated. Wait for the ServiceEntries to regenerate, then inspect the `solo.io/service-aliases` annotation:
 ```bash
 sleep 5
-kubectl get serviceentry -n istio-system --context $CLUSTER1 \
+kubectl get serviceentry -n istio-system --context $KUBECONTEXT_CLUSTER1 \
   -o yaml | grep -A5 "solo.io/service-aliases"
 ```
 
@@ -91,13 +94,13 @@ You should see `details.acme`, `reviews.acme`, and `ratings.acme` listed as alia
 Capture the productpage pod name to use for in-mesh connectivity tests:
 ```bash
 PRODUCTPAGE_POD=$(kubectl get pod -n bookinfo-frontends -l app=productpage \
-  --context $CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
+  --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
 echo $PRODUCTPAGE_POD
 ```
 
 Verify the alias resolves from inside the mesh:
 ```bash
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $CLUSTER1 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://details.acme:9080/details/0')
@@ -109,7 +112,7 @@ You should receive a valid JSON response. The alias is resolved by the mesh — 
 
 Now verify the default segment hostname still works alongside the alias:
 ```bash
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $CLUSTER1 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://details.bookinfo-backends.mesh.acme:9080/details/0')
@@ -124,21 +127,21 @@ Both `details.acme` and `details.bookinfo-backends.mesh.acme` return the same re
 Pattern 2 injects the value of the `acme.io/tier` label into the alias hostname at runtime. Label the `reviews` service:
 ```bash
 kubectl label svc/reviews -n bookinfo-backends acme.io/tier=frontend \
-  --overwrite --context $CLUSTER1
+  --overwrite --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for the ServiceEntry annotation to update:
 ```bash
 sleep 5
 kubectl get serviceentry autogen.acme-segment.bookinfo-backends.reviews \
-  -n istio-system --context $CLUSTER1 \
+  -n istio-system --context $KUBECONTEXT_CLUSTER1 \
   -o jsonpath='{.metadata.annotations.solo\.io/service-aliases}'
 echo
 ```
 
 The annotation should include `reviews.frontend.acme` — the label value `frontend` was injected into the pattern. Test it:
 ```bash
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $CLUSTER1 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://reviews.frontend.acme:9080/reviews/0')
@@ -153,21 +156,21 @@ Changing the label value to a different string (e.g. `backend`) immediately prod
 Pattern 3 generates an alias only for services that match the label selector `acme.io/public=true`. Label the `details` service:
 ```bash
 kubectl label svc/details -n bookinfo-backends acme.io/public=true \
-  --overwrite --context $CLUSTER1
+  --overwrite --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for the ServiceEntry annotation to update, then confirm the new alias is present:
 ```bash
 sleep 5
 kubectl get serviceentry autogen.acme-segment.bookinfo-backends.details \
-  -n istio-system --context $CLUSTER1 \
+  -n istio-system --context $KUBECONTEXT_CLUSTER1 \
   -o jsonpath='{.metadata.annotations.solo\.io/service-aliases}'
 echo
 ```
 
 You should now see `details.api.acme` alongside `details.acme`. Test it:
 ```bash
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $CLUSTER1 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://details.api.acme:9080/details/0')
@@ -182,21 +185,21 @@ Because `reviews` and `ratings` do not have `acme.io/public=true`, they do not r
 Pattern 4 works identically to Pattern 2 but reads from an annotation instead of a label. Annotate the `ratings` service:
 ```bash
 kubectl annotate svc/ratings -n bookinfo-backends acme.io/env=prod \
-  --overwrite --context $CLUSTER1
+  --overwrite --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for the ServiceEntry annotation to update:
 ```bash
 sleep 5
 kubectl get serviceentry autogen.acme-segment.bookinfo-backends.ratings \
-  -n istio-system --context $CLUSTER1 \
+  -n istio-system --context $KUBECONTEXT_CLUSTER1 \
   -o jsonpath='{.metadata.annotations.solo\.io/service-aliases}'
 echo
 ```
 
 The annotation should include `ratings.prod.acme`. Test it:
 ```bash
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $CLUSTER1 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://ratings.prod.acme:9080/ratings/0')
@@ -208,7 +211,7 @@ print(json.dumps(json.loads(resp.read().decode()), indent=2))
 
 Check the ServiceEntry annotations on `cluster2`. Even though `details` on `cluster1` carries `acme.io/public=true`, that label has no effect on `cluster2`'s `acquired-segment`:
 ```bash
-kubectl get serviceentry -n istio-system --context $CLUSTER2 \
+kubectl get serviceentry -n istio-system --context $KUBECONTEXT_CLUSTER2 \
   -o yaml | grep -A5 "solo.io/service-aliases"
 ```
 
@@ -217,9 +220,9 @@ The only alias shown for `details` on `cluster2` is `details.acquired`. ACME's p
 Verify the Acquired Company alias resolves on `cluster2`:
 ```bash
 PRODUCTPAGE_POD_C2=$(kubectl get pod -n bookinfo-frontends -l app=productpage \
-  --context $CLUSTER2 -o jsonpath='{.items[0].metadata.name}')
+  --context $KUBECONTEXT_CLUSTER2 -o jsonpath='{.items[0].metadata.name}')
 
-kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD_C2 --context $CLUSTER2 -- \
+kubectl exec -n bookinfo-frontends $PRODUCTPAGE_POD_C2 --context $KUBECONTEXT_CLUSTER2 -- \
   python3 -c "
 import urllib.request, json
 resp = urllib.request.urlopen('http://details.acquired:9080/details/0')
@@ -241,21 +244,21 @@ Global service aliases give each segment independent control over the hostname c
 
 Remove the alias labels and annotation from backend services on `cluster1`:
 ```bash
-kubectl label svc/details -n bookinfo-backends acme.io/public- --context $CLUSTER1
-kubectl label svc/reviews -n bookinfo-backends acme.io/tier- --context $CLUSTER1
-kubectl annotate svc/ratings -n bookinfo-backends acme.io/env- --context $CLUSTER1
+kubectl label svc/details -n bookinfo-backends acme.io/public- --context $KUBECONTEXT_CLUSTER1
+kubectl label svc/reviews -n bookinfo-backends acme.io/tier- --context $KUBECONTEXT_CLUSTER1
+kubectl annotate svc/ratings -n bookinfo-backends acme.io/env- --context $KUBECONTEXT_CLUSTER1
 ```
 
 Restore `productpage` to use the original `DETAILS_HOSTNAME`:
 ```bash
 kubectl set env deploy/productpage-v1 -n bookinfo-frontends \
   DETAILS_HOSTNAME=details.bookinfo-backends.svc.cluster.local \
-  --context $CLUSTER1
+  --context $KUBECONTEXT_CLUSTER1
 ```
 
 Restore the `bookinfo-route` to use the `mesh.internal` productpage hostname:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -280,20 +283,20 @@ EOF
 
 Remove the segment labels from both clusters' `istio-system` namespaces:
 ```bash
-kubectl label namespace istio-system admin.solo.io/segment- --context $CLUSTER1
-kubectl label namespace istio-system admin.solo.io/segment- --context $CLUSTER2
+kubectl label namespace istio-system admin.solo.io/segment- --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace istio-system admin.solo.io/segment- --context $KUBECONTEXT_CLUSTER2
 ```
 
 Delete the Segment CRs from both clusters:
 ```bash
-for context in $CLUSTER1 $CLUSTER2; do
+for context in $KUBECONTEXT_CLUSTER1 $KUBECONTEXT_CLUSTER2; do
   kubectl delete segment acme-segment acquired-segment -n istio-system --context $context
 done
 ```
 
 Remove the `solo.io/service-scope=global` labels from backend services if you applied them in lab `007` (skip if they were already present before that lab):
 ```bash
-for context in $CLUSTER1 $CLUSTER2; do
+for context in $KUBECONTEXT_CLUSTER1 $KUBECONTEXT_CLUSTER2; do
   kubectl label svc/details svc/reviews svc/ratings \
     -n bookinfo-backends solo.io/service-scope- --context $context
 done

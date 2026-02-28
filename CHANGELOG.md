@@ -2,7 +2,8 @@
 
 0.0.15 - (2-27-26)
 ---
-- Move gateway service annotations to a callout
+- Move Gateway service annotations to a callout
+- Introduce new cluster naming variables to eliminate naming conflicts
 
 0.0.14 - (2-27-26)
 ---

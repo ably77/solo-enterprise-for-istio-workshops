@@ -13,8 +13,11 @@
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 and cluster2 with your desired context name
 ```bash
-export CLUSTER1=cluster1
-export CLUSTER2=cluster2
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
+
+export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 Linking clusters enables cross-cluster service discovery and enables traffic to traverse across cluster boundaries. Before linking clusters, you should ensure each cluster you want to configure is set in you kubeconfig file. You can view the list of clusters currently configured with `kubectl config get-contexts`.
 
@@ -25,41 +28,41 @@ Now that we have set up two clusters with Istio Ambient mode and our sample Book
 
 Create istio-gateways namespace
 ```bash
-kubectl create ns istio-gateways --context $CLUSTER1
-kubectl create ns istio-gateways --context $CLUSTER2
+kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER1
+kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER2
 ```
 
 Use solo `istioctl` to create e/w peering gateways
 ```bash
-./solo-istioctl multicluster expose --namespace istio-gateways --context $CLUSTER1
+./solo-istioctl multicluster expose --namespace istio-gateways --context $KUBECONTEXT_CLUSTER1
 
-./solo-istioctl multicluster expose --namespace istio-gateways --context $CLUSTER2
+./solo-istioctl multicluster expose --namespace istio-gateways --context $KUBECONTEXT_CLUSTER2
 ```
 
 Wait for the e/w gateways to be deployed
 ```bash
-for deploy in $(kubectl get deploy -n istio-gateways --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for e/w gateway deployment '$deploy' to be ready in $CLUSTER1..."
-  kubectl rollout status deploy/"$deploy" -n istio-gateways --watch --timeout=90s --context $CLUSTER1
+for deploy in $(kubectl get deploy -n istio-gateways --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for e/w gateway deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER1..."
+  kubectl rollout status deploy/"$deploy" -n istio-gateways --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
   done
 
-for deploy in $(kubectl get deploy -n istio-gateways --context $CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
-  echo "Waiting for e/w gateway deployment '$deploy' to be ready in $CLUSTER2..."
-  kubectl rollout status deploy/"$deploy" -n istio-gateways --watch --timeout=90s --context $CLUSTER2
+for deploy in $(kubectl get deploy -n istio-gateways --context $KUBECONTEXT_CLUSTER2 -o jsonpath='{.items[*].metadata.name}'); do
+  echo "Waiting for e/w gateway deployment '$deploy' to be ready in $KUBECONTEXT_CLUSTER2..."
+  kubectl rollout status deploy/"$deploy" -n istio-gateways --watch --timeout=90s --context $KUBECONTEXT_CLUSTER2
   done
 ```
 
 Check to see that the e/w gateways have been deployed and an LB service has been generated
 ```bash
-kubectl get pods,svc -n istio-gateways --context $CLUSTER1
-kubectl get pods,svc -n istio-gateways --context $CLUSTER2
+kubectl get pods,svc -n istio-gateways --context $KUBECONTEXT_CLUSTER1
+kubectl get pods,svc -n istio-gateways --context $KUBECONTEXT_CLUSTER2
 ```
 
 > **Note:** The cloud load balancers for the e/w gateways may take a few minutes to be provisioned. If `EXTERNAL-IP` shows `<pending>`, wait and re-run the `kubectl get svc` command until addresses are assigned on both clusters before proceeding to link them.
 
 Link the e/w gateways
 ```bash
-./solo-istioctl multicluster link --contexts=$CLUSTER1,$CLUSTER2 --namespace istio-gateways
+./solo-istioctl multicluster link --contexts=$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2 --namespace istio-gateways
 ```
 
 ## Configure a global service
@@ -71,7 +74,7 @@ To make `productpage` available across both clusters, we apply two things to the
 - **`networking.istio.io/traffic-distribution=PreferNetwork`** — This annotation instructs Istio to prefer routing to instances in the same network (i.e. the local cluster) before failing over to the remote cluster. This avoids unnecessary cross-cluster traffic when a healthy local instance is available.
 
 ```bash
-for context in ${CLUSTER1} ${CLUSTER2}; do
+for context in $KUBECONTEXT_CLUSTER1 $KUBECONTEXT_CLUSTER2; do
   kubectl --context ${context}  -n bookinfo-frontends label service productpage solo.io/service-scope=global --overwrite
   kubectl --context ${context}  -n bookinfo-frontends annotate service productpage  networking.istio.io/traffic-distribution=PreferNetwork --overwrite
 done
@@ -79,7 +82,7 @@ done
 
 We should now see an automatically generated ServiceEntry referencing our global service in each cluster
 ```bash
-for CTX in "$CLUSTER1" "$CLUSTER2"; do
+for CTX in "$KUBECONTEXT_CLUSTER1" "$KUBECONTEXT_CLUSTER2"; do
   echo "Checking for autogen global ServiceEntry in $CTX"
   kubectl --context $CTX get serviceentry -n istio-system
 done
@@ -89,7 +92,7 @@ done
 
 Reconfigure the bookinfo application to use the global service hostname `*.<namespace>.mesh.internal`
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -114,7 +117,7 @@ EOF
 
 Refresh the browser to confirm the application is still routable. Or verify with curl
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 curl http://$SVC/productpage
 ```
 
@@ -126,20 +129,20 @@ At this point all traffic is being served from cluster1. You can confirm this in
 
 Scale down productpage-v1 in the `bookinfo-frontends` namespace on cluster1
 ```bash
-kubectl scale deploy/productpage-v1 -n bookinfo-frontends --replicas 0 --context $CLUSTER1
+kubectl scale deploy/productpage-v1 -n bookinfo-frontends --replicas 0 --context $KUBECONTEXT_CLUSTER1
 ```
 
 Refresh the browser or curl to confirm traffic has failed over to cluster2. The **Reviews** section on the productpage will now show `cluster2` as the reviewer cluster
 
 Or you can use curl
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 curl http://$SVC/productpage
 ```
 
 Tail logs of ztunnel on `cluster2` in a new terminal to watch logs
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER2 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER2 -f --prefix
 ```
 You should see traffic going to cluster2
 
@@ -147,14 +150,14 @@ You should see traffic going to cluster2
 
 Scale productpage-v1 back up in the `bookinfo-frontends` namespace on cluster1
 ```bash
-kubectl scale deploy/productpage-v1 -n bookinfo-frontends --replicas 1 --context $CLUSTER1
+kubectl scale deploy/productpage-v1 -n bookinfo-frontends --replicas 1 --context $KUBECONTEXT_CLUSTER1
 ```
 In the ztunnel logs of cluster2 we should see that traffic is no longer routing there because productpage-v1 on cluster1 is healthy
 
 
 Tail logs of ztunnel on `cluster1` in a new terminal to watch logs
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 If you retry the curl command you should now see traffic going to back to cluster1
 

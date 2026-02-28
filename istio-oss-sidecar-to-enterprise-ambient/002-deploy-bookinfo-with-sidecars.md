@@ -13,47 +13,48 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Label Namespaces for Sidecar Injection
 
 Enable automatic sidecar injection on both bookinfo namespaces. Istio will inject an Envoy proxy container into every new pod created in these namespaces:
 ```bash
-kubectl create namespace bookinfo-frontends --context $CLUSTER1 || true
-kubectl create namespace bookinfo-backends --context $CLUSTER1 || true
+kubectl create namespace bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 || true
+kubectl create namespace bookinfo-backends --context $KUBECONTEXT_CLUSTER1 || true
 
-kubectl label namespace bookinfo-frontends istio-injection=enabled --context $CLUSTER1
-kubectl label namespace bookinfo-backends istio-injection=enabled --context $CLUSTER1
+kubectl label namespace bookinfo-frontends istio-injection=enabled --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace bookinfo-backends istio-injection=enabled --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify the labels are applied:
 ```bash
-kubectl get namespace bookinfo-frontends bookinfo-backends --show-labels --context $CLUSTER1
+kubectl get namespace bookinfo-frontends bookinfo-backends --show-labels --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Deploy Bookinfo Application
 
 Deploy bookinfo frontends (productpage) in bookinfo-frontends namespace:
 ```bash
-kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $CLUSTER1
+kubectl apply -f bookinfo/bookinfo-frontends.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Deploy bookinfo backends (details, ratings, reviews) in bookinfo-backends namespace:
 ```bash
-kubectl apply -f bookinfo/bookinfo-backends.yaml --context $CLUSTER1
+kubectl apply -f bookinfo/bookinfo-backends.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for all deployments to be ready:
 ```bash
-for deploy in $(kubectl get deploy -n bookinfo-frontends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+for deploy in $(kubectl get deploy -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
   echo "Waiting for frontend deployment '$deploy' to be ready..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $CLUSTER1
+  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 done
 
-for deploy in $(kubectl get deploy -n bookinfo-backends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
   echo "Waiting for backend deployment '$deploy' to be ready..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $CLUSTER1
+  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 done
 ```
 
@@ -62,8 +63,8 @@ done
 **Key observation:** Pods should show `2/2 READY` — that is the app container plus the injected Envoy sidecar proxy.
 
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:
@@ -83,14 +84,14 @@ The `2/2` means two containers per pod: the application container and the Envoy 
 
 Check the proxy status across all sidecar-injected workloads:
 ```bash
-istioctl proxy-status --context $CLUSTER1
+istioctl proxy-status --context $KUBECONTEXT_CLUSTER1
 ```
 
 This shows all Envoy sidecars synced to istiod. Once we migrate to ambient, ztunnel replaces these per-pod proxies.
 
 Inspect the containers in a pod to see the injected sidecar:
 ```bash
-kubectl get pod -n bookinfo-frontends --context $CLUSTER1 \
+kubectl get pod -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 \
   -o jsonpath='{range .items[0].spec.containers[*]}{.name}{"\n"}{end}'
 ```
 
@@ -100,7 +101,7 @@ You should see two containers: `productpage` and `istio-proxy` (the Envoy sideca
 
 Port-forward to the productpage service to confirm the app is working:
 ```bash
-kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $CLUSTER1
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 ```
 
 Navigate to http://localhost:9080/productpage or verify with curl:

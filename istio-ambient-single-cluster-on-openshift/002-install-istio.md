@@ -17,18 +17,18 @@ Even though this is a single-cluster workshop, the install is intentionally conf
 |---|---|---|
 | `CLUSTER1=cluster1` as logical name | Names the cluster in mesh config | Multicluster uses `cluster1`/`cluster2` as distinct identities |
 | `topology.istio.io/network` label | Tags the network identity | Required for cross-cluster HBONE routing |
-| Per-cluster trust domain (`$CLUSTER1.local`) | Non-default trust domain | Avoids trust domain collision when adding cluster2 |
+| Per-cluster trust domain (`$MESH_NAME_CLUSTER1.local`) | Non-default trust domain | Avoids trust domain collision when adding cluster2 |
 | Shared root CA (`cacerts` secret) | Custom cert hierarchy | Allows both clusters to share a root of trust |
 | `PILOT_SKIP_VALIDATE_TRUST_DOMAIN` | No-op with one cluster | Required when clusters have distinct trust domains |
 | `platforms.peering.enabled: true` | Enables Solo peering API | Required for `istioctl multicluster link` in multicluster |
-| `network: $CLUSTER1` on ztunnel | No-op with one cluster | Required for cross-network HBONE routing |
+| `network: $MESH_NAME_CLUSTER1` on ztunnel | No-op with one cluster | Required for cross-network HBONE routing |
 
 ## Set environment variables
 
-`CLUSTER1` serves two roles: it is the **kubectl context name** and the **logical cluster name** used inside mesh configuration. If your context name differs, set it to `cluster1` here and pass your actual context explicitly with `--context` in each command.
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 > **Tip:** If your kubectl context is not named `cluster1`, rename it: `kubectl config rename-context <current-name> cluster1`
@@ -112,20 +112,20 @@ echo "Generated shared-root-trust-secret.yaml"
 ## Create the `istio-system` namespace and apply the CA secret
 
 ```bash
-kubectl create namespace istio-system --context $CLUSTER1
-kubectl apply -f shared-root-trust-secret.yaml --context $CLUSTER1
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Label the namespace with the network identity. This tag is how ztunnel and istiod know which network they belong to — required for cross-cluster HBONE routing in multicluster:
 ```bash
-kubectl label namespace istio-system topology.istio.io/network=$CLUSTER1 --context $CLUSTER1
+kubectl label namespace istio-system topology.istio.io/network=$CLUSTER1 --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Install Istio using Helm
 
 Install `istio-base`:
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istio-base \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istio-base \
   oci://us-docker.pkg.dev/soloio-img/istio-helm/base \
   -n istio-system \
   --version $ISTIO_VERSION-solo \
@@ -136,13 +136,13 @@ Install Kubernetes Gateway API CRDs if not already present:
 
 > **Note:** If you are using OpenShift >= 4.19, the Gateway API CRDs are already installed by default.
 ```bash
-kubectl get crd gateways.gateway.networking.k8s.io --context $CLUSTER1 &> /dev/null || \
-  kubectl --context $CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
+kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
+  kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
 ```
 
 Install `istio-cni`:
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istio-cni \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istio-cni \
   oci://us-docker.pkg.dev/soloio-img/istio-helm/cni \
   -n kube-system \
   --version=$ISTIO_VERSION-solo \
@@ -163,12 +163,12 @@ EOF
 
 Wait for the CNI DaemonSet to roll out:
 ```bash
-kubectl rollout status ds/istio-cni-node -n kube-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status ds/istio-cni-node -n kube-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 Install `istiod`:
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istiod \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istiod \
   oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod \
   -n istio-system \
   --version=$ISTIO_VERSION-solo \
@@ -180,13 +180,13 @@ global:
   tag: $ISTIO_VERSION-solo
   variant: distroless
   multiCluster:
-    clusterName: $CLUSTER1
+    clusterName: $MESH_NAME_CLUSTER1
   # Tags this cluster's network — used for cross-cluster routing in multicluster
-  network: $CLUSTER1
+  network: $MESH_NAME_CLUSTER1
 meshConfig:
   # Per-cluster trust domain avoids collision when a second cluster is added.
   # The multicluster workshop uses cluster1.local / cluster2.local.
-  trustDomain: $CLUSTER1.local
+  trustDomain: $MESH_NAME_CLUSTER1.local
 env:
   # Enables assigning multi-cluster services an IP address
   PILOT_ENABLE_IP_AUTOALLOCATE: "true"
@@ -205,12 +205,12 @@ EOF
 
 Wait for istiod to roll out:
 ```bash
-kubectl rollout status deploy/istiod -n istio-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status deploy/istiod -n istio-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 Install `ztunnel`:
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install ztunnel \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install ztunnel \
   oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel \
   -n kube-system \
   --version=$ISTIO_VERSION-solo \
@@ -232,23 +232,23 @@ env:
   # Required when clusters have distinct trust domains
   SKIP_VALIDATE_TRUST_DOMAIN: "true"
 # Must match the network set on istiod — used for cross-network HBONE routing
-network: $CLUSTER1
+network: $MESH_NAME_CLUSTER1
 multiCluster:
-  clusterName: $CLUSTER1
+  clusterName: $MESH_NAME_CLUSTER1
 EOF
 ```
 
 Wait for ztunnel to roll out:
 ```bash
-kubectl rollout status ds/ztunnel -n kube-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status ds/ztunnel -n kube-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Validate the installation
 
 Confirm all Istio components are running:
 ```bash
-kubectl get pods -n istio-system --context $CLUSTER1
-kubectl get ds ztunnel istio-cni-node -n kube-system --context $CLUSTER1
+kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl get ds ztunnel istio-cni-node -n kube-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output for `istio-system`:

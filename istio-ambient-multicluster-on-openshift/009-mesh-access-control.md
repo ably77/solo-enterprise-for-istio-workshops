@@ -15,13 +15,13 @@ Bookinfo is a great application to demonstrate access control because it has dis
 
 Check to see that the application has been deployed
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Set the `SVC` variable to the ingress gateway LoadBalancer address
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 ```
 
 Navigate to the bookinfo application in your browser
@@ -41,7 +41,7 @@ Apply deny all auth policy to both bookinfo-frontends and bookinfo-backends
 ```bash
 cat auth-policy/allow-nothing.yaml
 echo
-kubectl apply -f auth-policy/allow-nothing.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/allow-nothing.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 If you refresh the bookinfo page in the browser you should now see `upstream connect error or disconnect/reset before headers. reset reason: connection termination`
@@ -53,7 +53,7 @@ curl -s http://$SVC/productpage
 
 Take a look at the `ztunnel` logs to see the rejection
 ```bash
-kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n kube-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 ![](../images/auth-pol-1.png)
@@ -63,7 +63,7 @@ Allow Istio ingress to access productpage
 ```bash
 cat auth-policy/productpage-auth.yaml
 echo
-kubectl apply -f auth-policy/productpage-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/productpage-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 Refresh the application in the browser, now you should be able to access the productpage app, but notice that the details, ratings, and reviews applications are unavailable
 
@@ -78,7 +78,7 @@ Take a look at the `ztunnel` logs, this time you will see a successful connectio
 
 But notice that we observe a `401 Unauthorized` for the connnection from productpage to reviews, ratings, and details
 ```bash
-kubectl logs -n kube-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n kube-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 ![](../images/auth-pol-2.png)
@@ -88,7 +88,7 @@ Allow productpage to access details
 ```bash
 cat auth-policy/details-auth.yaml
 echo
-kubectl apply -f auth-policy/details-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/details-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 Refresh the application in the browser, now you should be able to access the productpage app and details but ratings and reviews applications are unavailable
 
@@ -106,7 +106,7 @@ Allow productpage to access reviews
 ```bash
 cat auth-policy/reviews-auth.yaml
 echo
-kubectl apply -f auth-policy/reviews-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/reviews-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 Refresh the application in the browser, now you should be able to access the productpage app, details, and reviews, but not the ratings app (no stars available)
 
@@ -124,7 +124,7 @@ Allow reviews to access ratings
 ```bash
 cat auth-policy/ratings-auth.yaml
 echo
-kubectl apply -f auth-policy/ratings-auth.yaml --context $CLUSTER1
+kubectl apply -f auth-policy/ratings-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 Now the application should be fully accessible, and you have established full zero-trust using Istio authorization policies!
 
@@ -141,8 +141,8 @@ curl -s http://$SVC/productpage | grep -A 10 reviews
 
 Remove components
 ```bash
-kubectl delete authorizationpolicies --all -n bookinfo-frontends --context $CLUSTER1
-kubectl delete authorizationpolicies --all -n bookinfo-backends --context $CLUSTER1
+kubectl delete authorizationpolicies --all -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl delete authorizationpolicies --all -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Next Steps

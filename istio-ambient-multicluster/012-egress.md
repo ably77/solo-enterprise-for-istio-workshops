@@ -14,13 +14,14 @@
 ### Set environment variables
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 with your desired context name
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 Next, we'll create a dedicated `egress` namespace and deploy a shared Waypoint. This Waypoint will serve as a centralized control point for outbound traffic from various namespaces.
 
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -49,19 +50,19 @@ EOF
 Wait for the Waypoint deployment to be fully operational before proceeding.
 
 ```bash
-kubectl -n egress rollout status deployment/egress-waypoint --context ${CLUSTER1}
+kubectl -n egress rollout status deployment/egress-waypoint --context $KUBECONTEXT_CLUSTER1
 ```
 
 We can see that the egress waypoint that we have created for the cluster has been deployed
 ```
-% kubectl get pods -n egress --context ${CLUSTER1}
+% kubectl get pods -n egress --context $KUBECONTEXT_CLUSTER1
 NAME                               READY   STATUS    RESTARTS   AGE
 egress-waypoint-54dbfd59bd-sqwd9   1/1     Running   0          8s
 ```
 
 Configure gateway access logging for egress waypoint
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -82,7 +83,7 @@ Enforce traffic to external services
 Next, create a Service Entry to represent the external service 'jsonplaceholder.typicode.com' and by setting the labels `istio.io/use-waypoint` and `istio.io/use-waypoint-namespace` we configure traffic targeted at this service entry to be routed through the shared egress waypoint.
 
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -106,12 +107,12 @@ To confirm that traffic is correctly flowing through the Waypoint, send a reques
 
 We can confirm that traffic intended for jsonplaceholder.typicode.com is intercepted by our egress waypoint by looking at the logs of the egress waypoint that we just deployed
 ```bash
-kubectl logs -n egress deploy/egress-waypoint -f --context ${CLUSTER1}
+kubectl logs -n egress deploy/egress-waypoint -f --context $KUBECONTEXT_CLUSTER1
 ```
 
 Exec into `reviews-v1` app and curl jsonplaceholder.typicode.com
 ```shell
-kubectl exec deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- curl -sI jsonplaceholder.typicode.com/posts | grep envoy
+kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- curl -sI jsonplaceholder.typicode.com/posts | grep envoy
 ```
 
 ```http,nocopy
@@ -132,24 +133,24 @@ Apply egress auth policy to allow reviews source principal to talk to the http:/
 ```bash
 cat auth-policy/egress-auth.yaml
 echo
-kubectl apply -f auth-policy/egress-auth.yaml --context ${CLUSTER1}
+kubectl apply -f auth-policy/egress-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 Exec into `reviews-v1` app and curl jsonplaceholder.typicode.com/posts
 ```shell
-kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- curl jsonplaceholder.typicode.com/posts
+kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- curl jsonplaceholder.typicode.com/posts
 ```
 This request should succeed
 
 Now try the /comments path instead
 ```shell
-kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- curl jsonplaceholder.typicode.com/comments
+kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- curl jsonplaceholder.typicode.com/comments
 ```
 You should now see `RBAC: access denied` due to the egress policy that only allows the `/posts` path
 
 And lastly, try again from the ratings application
 ```shell
-kubectl exec -it deploy/ratings-v1 -n bookinfo-backends --context ${CLUSTER1} -- curl jsonplaceholder.typicode.com/posts
+kubectl exec -it deploy/ratings-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- curl jsonplaceholder.typicode.com/posts
 ```
 You should also see `RBAC: access denied` due to the egress policy because it only allows requests from the source principal `cluster.local/ns/bookinfo-backends/sa/bookinfo-reviews`
 
@@ -164,12 +165,12 @@ Here we have demonstrated how to set up an egress gateway, force traffic through
 
 Remove components
 ```bash
-kubectl delete authorizationpolicies -n bookinfo-frontends --all --context ${CLUSTER1}
-kubectl delete authorizationpolicies -n bookinfo-backends --all --context ${CLUSTER1}
-kubectl delete serviceentry --all -n egress --context ${CLUSTER1}
-kubectl delete telemetry enable-access-logging -n egress --context ${CLUSTER1}
-kubectl delete gateway egress-waypoint -n egress --context ${CLUSTER1}
-kubectl delete namespace egress --context ${CLUSTER1}
+kubectl delete authorizationpolicies -n bookinfo-frontends --all --context $KUBECONTEXT_CLUSTER1
+kubectl delete authorizationpolicies -n bookinfo-backends --all --context $KUBECONTEXT_CLUSTER1
+kubectl delete serviceentry --all -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete telemetry enable-access-logging -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete gateway egress-waypoint -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete namespace egress --context $KUBECONTEXT_CLUSTER1
 
 ## Next Steps
 At this point we have completed the following objectives

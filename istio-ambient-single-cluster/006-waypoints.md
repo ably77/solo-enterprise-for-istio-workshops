@@ -15,7 +15,8 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Background
@@ -28,7 +29,7 @@ Waypoints are Envoy-based proxies created using the Kubernetes Gateway API. Once
 
 Deploy a waypoint for the `bookinfo-backends` namespace:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -48,24 +49,24 @@ EOF
 
 Wait for the waypoint to be ready:
 ```bash
-kubectl rollout status deployment/waypoint -n bookinfo-backends --context $CLUSTER1
+kubectl rollout status deployment/waypoint -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Label the `bookinfo-backends` namespace to route all inbound service traffic through the waypoint:
 ```bash
-kubectl label namespace bookinfo-backends istio.io/use-waypoint=waypoint --context $CLUSTER1
+kubectl label namespace bookinfo-backends istio.io/use-waypoint=waypoint --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify the waypoint pod is running alongside the bookinfo backend pods:
 ```bash
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 All inbound L7 traffic to services in `bookinfo-backends` now flows through this waypoint.
 
 Enable access logging on the waypoint so requests are visible in the logs throughout this lab:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -88,7 +89,7 @@ ztunnel handles Layer 4 authorization — policies that allow or deny based on w
 
 With a waypoint in place, you can enforce at the HTTP level. Apply an L7 `AuthorizationPolicy` that restricts the `reviews` service to only allow `GET` requests:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -111,7 +112,7 @@ EOF
 
 Verify a `GET` request succeeds:
 ```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "import urllib.request; print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())"
 ```
 
@@ -119,7 +120,7 @@ You should see `200`.
 
 Now try a `DELETE` request, which is not in the allowed methods:
 ```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, urllib.error
 req = urllib.request.Request('http://reviews.bookinfo-backends:9080/reviews/0', method='DELETE')
@@ -133,13 +134,13 @@ You should see `403`. The waypoint enforces the policy before the request ever r
 
 Check the waypoint logs to see the RBAC enforcement:
 ```bash
-kubectl logs -n bookinfo-backends deploy/waypoint --context $CLUSTER1 | grep -i "rbac\|403"
+kubectl logs -n bookinfo-backends deploy/waypoint --context $KUBECONTEXT_CLUSTER1 | grep -i "rbac\|403"
 ```
 
 Remove the L7 auth policy and access logging before continuing:
 ```bash
-kubectl delete authorizationpolicy reviews-l7-policy -n bookinfo-backends --context $CLUSTER1
-kubectl delete telemetry waypoint-access-logging -n bookinfo-backends --context $CLUSTER1
+kubectl delete authorizationpolicy reviews-l7-policy -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
+kubectl delete telemetry waypoint-access-logging -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ![](../images/waypoints-2.png)
@@ -154,20 +155,20 @@ This lab uses two additional version-pinned Services that are not part of the ba
 
 Apply them now:
 ```bash
-kubectl apply --context $CLUSTER1 -f bookinfo/bookinfo-waypoint-services.yaml
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f bookinfo/bookinfo-waypoint-services.yaml
 ```
 
 ### Story 1 — Canary Shift to Stable
 
 The team wants to gradually shift traffic from the current production version (v1, no stars) to `reviews-stable` (v3, red stars). Patch the `reviews` Service selector to pin it to `version: v1` before starting to make the canary signal unambiguous:
 ```bash
-kubectl patch svc reviews -n bookinfo-backends --context $CLUSTER1 \
+kubectl patch svc reviews -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 \
   --type=merge -p '{"spec":{"selector":{"app":"reviews","version":"v1"}}}'
 ```
 
 Navigate to the productpage and confirm all requests show no stars (v1):
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 echo http://$SVC/productpage
 ```
 
@@ -179,7 +180,7 @@ The waypoint changes this. Because all inbound traffic to `bookinfo-backends` no
 
 Now apply an HTTPRoute to introduce the canary at 20%:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -208,7 +209,7 @@ Refresh the productpage several times — you should see mostly no stars with re
 
 Once confidence is high, complete the rollout to 100% `reviews-stable`:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -234,7 +235,7 @@ All requests should now consistently show red stars — the canary is complete.
 
 Route users with the `end-user: premium-user` header to `reviews-premium` (v2, black stars), while all other traffic continues to `reviews`:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -262,13 +263,13 @@ EOF
 
 Verify a standard request goes to the default `reviews` (no stars — still pinned to v1):
 ```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "import urllib.request, json; print(json.dumps(json.load(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0')), indent=2))"
 ```
 
 Now send a request with the premium header and confirm it hits `reviews-premium` (v2, black stars):
 ```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, json
 req = urllib.request.Request('http://reviews.bookinfo-backends:9080/reviews/0', headers={'end-user': 'premium-user'})
@@ -283,7 +284,7 @@ You can also verify via the productpage browser UI. Log in as `premium-user` usi
 
 Clean up the HTTPRoute before continuing:
 ```bash
-kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
+kubectl delete httproute reviews -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
 ## Fault Injection
@@ -292,7 +293,7 @@ Fault injection lets you introduce artificial failures to test how your applicat
 
 Apply a `VirtualService` that introduces a 2-second delay on 100% of requests to `reviews`:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -315,7 +316,7 @@ EOF
 
 Time a request to `reviews` and observe the delay:
 ```bash
-kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
   python3 -c "
 import urllib.request, time
 t = time.time()
@@ -329,7 +330,7 @@ You should see approximately a 2-second response time.
 
 Now replace the delay with an HTTP abort, returning `503` on 50% of requests:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -353,7 +354,7 @@ EOF
 Send 10 requests and observe the mix of responses:
 ```bash
 for i in $(seq 1 10); do
-  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
     python3 -c "
 import urllib.request, urllib.error
 try: print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())
@@ -365,7 +366,7 @@ You should see a roughly 50/50 mix of `200` and `503` responses.
 
 Remove the fault injection before continuing:
 ```bash
-kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUSTER1
+kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ![](../images/waypoints-6.png)
@@ -376,7 +377,7 @@ With fault injection you saw raw failures reaching the caller. Retries let the m
 
 Apply a single VirtualService that combines the 50% abort fault with a retry policy. Fault injection and retries must be in the same `http` rule — Istio does not support two VirtualServices for the same host:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -404,7 +405,7 @@ EOF
 Send 10 requests:
 ```bash
 for i in $(seq 1 10); do
-  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
     python3 -c "
 import urllib.request, urllib.error
 try: print(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0').getcode())
@@ -420,25 +421,25 @@ You should now see mostly `200` responses. Each retry is an independent trial ag
 
 Remove all VirtualServices and the HTTPRoute created in this lab:
 ```bash
-kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
-kubectl delete httproute reviews -n bookinfo-backends --context $CLUSTER1 --ignore-not-found
+kubectl delete virtualservice reviews-fault -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+kubectl delete httproute reviews -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
 Remove the lab-specific Services:
 ```bash
-kubectl delete -f bookinfo/bookinfo-waypoint-services.yaml --context $CLUSTER1 --ignore-not-found
+kubectl delete -f bookinfo/bookinfo-waypoint-services.yaml --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
 Restore the `reviews` Service selector to its original state (all versions):
 ```bash
-kubectl patch svc reviews -n bookinfo-backends --context $CLUSTER1 \
+kubectl patch svc reviews -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 \
   --type=merge -p '{"spec":{"selector":{"app":"reviews","version":null}}}'
 ```
 
 To fully remove the waypoint:
 ```bash
-kubectl label namespace bookinfo-backends istio.io/use-waypoint- --context $CLUSTER1
-kubectl delete gateway waypoint -n bookinfo-backends --context $CLUSTER1
+kubectl label namespace bookinfo-backends istio.io/use-waypoint- --context $KUBECONTEXT_CLUSTER1
+kubectl delete gateway waypoint -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Next Steps

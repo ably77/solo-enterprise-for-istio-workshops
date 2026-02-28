@@ -13,14 +13,15 @@
 ## Set environment variables
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Deploy an Ingress Gateway
 
 Create an Istio Gateway using the Kubernetes Gateway API:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -41,7 +42,7 @@ EOF
 > **Note:** If your cloud provider requires specific load balancer annotations (for example, to use an NLB on AWS), you can customize the gateway's generated service using `spec.infrastructure.parametersRef`. Replace the command above with the following, which includes a `gw-options` ConfigMap:
 >
 > ```bash
-> kubectl apply --context $CLUSTER1 -f - <<EOF
+> kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 > apiVersion: gateway.networking.k8s.io/v1
 > kind: Gateway
 > metadata:
@@ -77,8 +78,8 @@ EOF
 
 Verify the gateway pod and service have been created in `istio-system`:
 ```bash
-kubectl get pods -n istio-system --context $CLUSTER1
-kubectl get svc -n istio-system --context $CLUSTER1
+kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl get svc -n istio-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output for pods:
@@ -101,7 +102,7 @@ istiod          ClusterIP      10.96.128.33     <none>          15010/TCP,15012/
 
 Create an HTTPRoute to route incoming traffic to the productpage service:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -126,7 +127,7 @@ EOF
 
 Get the external IP of the ingress gateway service and open the application in your browser:
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 echo http://$SVC/productpage
 ```
 
@@ -140,12 +141,12 @@ curl http://$SVC/productpage
 Generate a request to the application and inspect ztunnel logs to confirm it is intercepting and securing traffic. Open a second terminal and start tailing the ztunnel logs:
 
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 In your original terminal, send a request through the ingress gateway using curl (not a browser — see note below):
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 curl http://$SVC/productpage -s -o /dev/null -w "%{http_code}"
 ```
 
