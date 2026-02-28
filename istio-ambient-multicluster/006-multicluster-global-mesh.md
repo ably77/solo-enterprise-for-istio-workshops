@@ -14,10 +14,8 @@
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster1 and cluster2 with your desired context name
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 
 export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 Linking clusters enables cross-cluster service discovery and enables traffic to traverse across cluster boundaries. Before linking clusters, you should ensure each cluster you want to configure is set in you kubeconfig file. You can view the list of clusters currently configured with `kubectl config get-contexts`.
 

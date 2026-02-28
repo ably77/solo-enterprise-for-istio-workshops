@@ -2,7 +2,8 @@
 
 0.1.0 - (2-27-26)
 ---
-- Remove unused `MESH_NAME_CLUSTER1` reference from `istio-oss-sidecar-to-enterprise-ambient` workshop
+- Remove unused `MESH_NAME_CLUSTER1` variable references from `istio-oss-sidecar-to-enterprise-ambient` workshop
+- Remove `MESH_NAME_CLUSTER<N>` variables in labs where it is unnecessary
 
 0.0.15 - (2-27-26)
 ---

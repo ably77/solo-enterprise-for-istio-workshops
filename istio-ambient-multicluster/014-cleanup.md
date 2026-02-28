@@ -4,10 +4,8 @@ Uninstall Istio and Bookinfo application on `cluster1` and `cluster2` by running
 
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 
 export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
-export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 export CLUSTERS=($KUBECONTEXT_CLUSTER1 $KUBECONTEXT_CLUSTER2)
 ```
 
