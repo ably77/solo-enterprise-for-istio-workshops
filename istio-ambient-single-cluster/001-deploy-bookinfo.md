@@ -11,7 +11,6 @@
 
 ## Set environment variables
 
-`CLUSTER1` is the logical cluster name — set it to `cluster1` to match the convention used throughout this workshop and the multicluster workshop it is designed to extend to:
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
 export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
