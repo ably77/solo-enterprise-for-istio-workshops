@@ -14,7 +14,8 @@
 ## Set Environment Variables
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 export OSS_ISTIO_VERSION=1.26.8
 ```
 
@@ -34,21 +35,21 @@ helm search repo istio --versions | grep "$OSS_ISTIO_VERSION" | head -5
 
 Install Kubernetes Gateway API CRDs. This command is idempotent — safe to run on any cluster:
 ```bash
-kubectl get crd gateways.gateway.networking.k8s.io --context $CLUSTER1 &> /dev/null || \
-  { kubectl --context $CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
+kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
+  { kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
 ```
 
 ## Create the `istio-system` Namespace
 
 ```bash
-kubectl create namespace istio-system --context $CLUSTER1
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Install `istio-base`
 
 Install the Istio base chart (CRDs and cluster-scoped resources) from community charts:
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istio-base istio/base \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istio-base istio/base \
   -n istio-system \
   --version $OSS_ISTIO_VERSION
 ```
@@ -58,7 +59,7 @@ helm upgrade --kube-context $CLUSTER1 --install istio-base istio/base \
 Install the Istio control plane in default sidecar mode. No ambient profile — this is a standard OSS install using all defaults. This is the realistic starting point: a plain community Istio deployment with no Solo-specific configuration.
 
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istiod istio/istiod \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istiod istio/istiod \
   -n istio-system \
   --version $OSS_ISTIO_VERSION \
   --wait
@@ -68,7 +69,7 @@ helm upgrade --kube-context $CLUSTER1 --install istiod istio/istiod \
 
 Check that istiod is running:
 ```bash
-kubectl get pods -n istio-system --context $CLUSTER1
+kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:

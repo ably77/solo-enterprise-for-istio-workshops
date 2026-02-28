@@ -17,20 +17,23 @@ In this workshop, we are going to use `cluster1` as the cluster where Gloo Mesh 
 ```bash
 export GLOO_MESH_VERSION=2.12.0
 
-export CLUSTER1=cluster1
-export CLUSTER2=cluster2
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
+
+export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
 Create the `gloo-mesh` namespace on cluster1
 ```bash
-kubectl create namespace gloo-mesh --context ${CLUSTER1}
+kubectl create namespace gloo-mesh --context $KUBECONTEXT_CLUSTER1
 ```
 
 Install the Gloo Platform CRDs
 ```bash
 helm upgrade -i gloo-platform-crds gloo-platform/gloo-platform-crds \
   --version=${GLOO_MESH_VERSION} \
-  --kube-context ${CLUSTER1} \
+  --kube-context $KUBECONTEXT_CLUSTER1 \
   --namespace=gloo-mesh
 ```
 
@@ -42,13 +45,13 @@ Install the Gloo Platform management plane on cluster1. The `glooMgmtServer` and
 helm upgrade --install gloo-platform gloo-platform \
   --repo https://storage.googleapis.com/gloo-platform/helm-charts \
   --namespace gloo-mesh \
-  --kube-context ${CLUSTER1} \
+  --kube-context $KUBECONTEXT_CLUSTER1 \
   --version ${GLOO_MESH_VERSION} \
   -f -<<EOF
 licensing:
   glooTrialLicenseKey: ${SOLO_TRIAL_LICENSE_KEY}
 common:
-  cluster: "${CLUSTER1}"
+  cluster: "$MESH_NAME_CLUSTER1"
 glooMgmtServer:
   extraEnvs:
     RELAY_DISABLE_CLIENT_CERTIFICATE_AUTHENTICATION:
@@ -164,7 +167,7 @@ EOF
 
 Check to see that the pods are running in the gloo-mesh namespace
 ```bash
-kubectl get pods -n gloo-mesh --context ${CLUSTER1}
+kubectl get pods -n gloo-mesh --context $KUBECONTEXT_CLUSTER1
 ```
 
 The output should look similar to below
@@ -184,14 +187,14 @@ prometheus-server-5d6657746d-h7qgq         2/2     Running   0          60s
 
 Wait for the LoadBalancer services to receive external IPs, then capture the endpoints:
 ```bash
-kubectl get svc gloo-mesh-mgmt-server gloo-telemetry-gateway -n gloo-mesh --context ${CLUSTER1}
+kubectl get svc gloo-mesh-mgmt-server gloo-telemetry-gateway -n gloo-mesh --context $KUBECONTEXT_CLUSTER1
 ```
 
 Export the external addresses for use when registering cluster2:
 ```bash
-export ENDPOINT_GLOO_MESH=$(kubectl get svc gloo-mesh-mgmt-server -n gloo-mesh --context ${CLUSTER1} \
+export ENDPOINT_GLOO_MESH=$(kubectl get svc gloo-mesh-mgmt-server -n gloo-mesh --context $KUBECONTEXT_CLUSTER1 \
   --no-headers | awk '{ print $4 }')
-export ENDPOINT_TELEMETRY_GATEWAY=$(kubectl get svc gloo-telemetry-gateway -n gloo-mesh --context ${CLUSTER1} \
+export ENDPOINT_TELEMETRY_GATEWAY=$(kubectl get svc gloo-telemetry-gateway -n gloo-mesh --context $KUBECONTEXT_CLUSTER1 \
   --no-headers | awk '{ print $4 }')
 
 echo "Mgmt Plane Address: $ENDPOINT_GLOO_MESH"
@@ -201,33 +204,33 @@ echo "Metrics Gateway Address: $ENDPOINT_TELEMETRY_GATEWAY"
 # Register our second workload cluster
 
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
 kind: KubernetesCluster
 metadata:
-  name: ${CLUSTER2}
+  name: $MESH_NAME_CLUSTER2
   namespace: gloo-mesh
 spec:
   clusterDomain: cluster.local
 EOF
 
-kubectl --context ${CLUSTER2} create ns gloo-mesh
+kubectl --context $KUBECONTEXT_CLUSTER2 create ns gloo-mesh
 ```
 
 Copy the relay secrets from cluster1 to cluster2 so the agent can authenticate with the management server:
 ```bash
-kubectl get secret relay-root-tls-secret -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
-kubectl create secret generic relay-root-tls-secret -n gloo-mesh --context ${CLUSTER2} --from-file ca.crt=ca.crt
+kubectl get secret relay-root-tls-secret -n gloo-mesh --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+kubectl create secret generic relay-root-tls-secret -n gloo-mesh --context $KUBECONTEXT_CLUSTER2 --from-file ca.crt=ca.crt
 rm ca.crt
 
-kubectl get secret relay-identity-token-secret -n gloo-mesh --context ${CLUSTER1} -o jsonpath='{.data.token}' | base64 -d > token
-kubectl create secret generic relay-identity-token-secret -n gloo-mesh --context ${CLUSTER2} --from-file token=token
+kubectl get secret relay-identity-token-secret -n gloo-mesh --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.data.token}' | base64 -d > token
+kubectl create secret generic relay-identity-token-secret -n gloo-mesh --context $KUBECONTEXT_CLUSTER2 --from-file token=token
 rm token
 
 helm upgrade --install gloo-platform-crds gloo-platform-crds \
   --repo https://storage.googleapis.com/gloo-platform/helm-charts \
   --namespace gloo-mesh \
-  --kube-context ${CLUSTER2} \
+  --kube-context $KUBECONTEXT_CLUSTER2 \
   --version ${GLOO_MESH_VERSION}
 ```
 
@@ -235,11 +238,11 @@ helm upgrade --install gloo-platform-crds gloo-platform-crds \
 helm upgrade --install gloo-agent gloo-platform \
   --repo https://storage.googleapis.com/gloo-platform/helm-charts \
   --namespace gloo-mesh \
-  --kube-context ${CLUSTER2} \
+  --kube-context $KUBECONTEXT_CLUSTER2 \
   --version ${GLOO_MESH_VERSION} \
   -f -<<EOF
 common:
-  cluster: ${CLUSTER2}
+  cluster: $MESH_NAME_CLUSTER2
 glooAgent:
   enabled: true
   extraEnvs:
@@ -266,7 +269,7 @@ EOF
 
 Use port-forward to access the Gloo Mesh UI:
 ```bash
-kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context ${CLUSTER1}
+kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context $KUBECONTEXT_CLUSTER1
 ```
 
 Navigate to http://localhost:8090
@@ -274,16 +277,16 @@ Navigate to http://localhost:8090
 # Uninstall
 
 ```bash
-kubectl delete kubernetescluster --all -n gloo-mesh --context ${CLUSTER1}
+kubectl delete kubernetescluster --all -n gloo-mesh --context $KUBECONTEXT_CLUSTER1
 
-helm uninstall gloo-agent -n gloo-mesh --kube-context ${CLUSTER1}
-helm uninstall gloo-agent -n gloo-mesh --kube-context ${CLUSTER2}
+helm uninstall gloo-agent -n gloo-mesh --kube-context $KUBECONTEXT_CLUSTER1
+helm uninstall gloo-agent -n gloo-mesh --kube-context $KUBECONTEXT_CLUSTER2
 
-helm uninstall gloo-platform-crds -n gloo-mesh --kube-context ${CLUSTER1}
-helm uninstall gloo-platform-crds -n gloo-mesh --kube-context ${CLUSTER2}
+helm uninstall gloo-platform-crds -n gloo-mesh --kube-context $KUBECONTEXT_CLUSTER1
+helm uninstall gloo-platform-crds -n gloo-mesh --kube-context $KUBECONTEXT_CLUSTER2
 
-kubectl delete ns gloo-mesh --context ${CLUSTER1}
-kubectl delete ns gloo-mesh --context ${CLUSTER2}
+kubectl delete ns gloo-mesh --context $KUBECONTEXT_CLUSTER1
+kubectl delete ns gloo-mesh --context $KUBECONTEXT_CLUSTER2
 ```
 
 ## Congratulations!

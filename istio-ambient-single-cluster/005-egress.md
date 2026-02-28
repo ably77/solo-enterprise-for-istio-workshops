@@ -14,14 +14,15 @@
 ## Set environment variables
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Deploy the egress namespace and waypoint
 
 Create a dedicated `egress` namespace and deploy a shared Waypoint. This Waypoint serves as a centralized control point for outbound traffic from across the mesh:
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -49,12 +50,12 @@ EOF
 
 Wait for the waypoint deployment to be ready:
 ```bash
-kubectl -n egress rollout status deployment/egress-waypoint --context ${CLUSTER1}
+kubectl -n egress rollout status deployment/egress-waypoint --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify the waypoint pod is running:
 ```bash
-kubectl get pods -n egress --context ${CLUSTER1}
+kubectl get pods -n egress --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:
@@ -66,7 +67,7 @@ egress-waypoint-54dbfd59bd-sqwd9   1/1     Running   0          8s
 ## Enable access logging on the egress waypoint
 
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
@@ -87,7 +88,7 @@ EOF
 
 Create a ServiceEntry to represent the external service `jsonplaceholder.typicode.com`. The labels `istio.io/use-waypoint` and the placement in the `egress` namespace configure traffic to this service to be routed through the shared egress waypoint:
 ```bash
-kubectl apply --context ${CLUSTER1} -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -110,12 +111,12 @@ EOF
 
 Open a terminal to watch egress waypoint logs in real time:
 ```bash
-kubectl logs -n egress deploy/egress-waypoint -f --context ${CLUSTER1}
+kubectl logs -n egress deploy/egress-waypoint -f --context $KUBECONTEXT_CLUSTER1
 ```
 
 In a second terminal, exec into `reviews-v1` and send a request to the external service:
 ```bash
-kubectl exec deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- \
+kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl -sI jsonplaceholder.typicode.com/posts | grep envoy
 ```
 
@@ -137,26 +138,26 @@ Apply an egress authorization policy that allows only the `reviews` service acco
 ```bash
 cat auth-policy/egress-auth.yaml
 echo
-kubectl apply -f auth-policy/egress-auth.yaml --context ${CLUSTER1}
+kubectl apply -f auth-policy/egress-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 **Test 1 — Allowed:** `reviews-v1` calling the allowed path `/posts`:
 ```bash
-kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- \
+kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/posts
 ```
 This request should succeed with a 200 response.
 
 **Test 2 — Denied by path:** `reviews-v1` calling a disallowed path `/comments`:
 ```bash
-kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context ${CLUSTER1} -- \
+kubectl exec -it deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/comments
 ```
 Expected: `RBAC: access denied` — the policy only permits `/posts`.
 
 **Test 3 — Denied by principal:** `ratings-v1` calling the allowed path:
 ```bash
-kubectl exec -it deploy/ratings-v1 -n bookinfo-backends --context ${CLUSTER1} -- \
+kubectl exec -it deploy/ratings-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
   curl jsonplaceholder.typicode.com/posts
 ```
 Expected: `RBAC: access denied` — the policy only permits requests from the `bookinfo-reviews` service account.
@@ -169,11 +170,11 @@ Check the egress waypoint logs to see the RBAC deny entries:
 ## Cleanup
 
 ```bash
-kubectl delete authorizationpolicies -n egress --all --context ${CLUSTER1}
-kubectl delete serviceentry --all -n egress --context ${CLUSTER1}
-kubectl delete telemetry enable-access-logging -n egress --context ${CLUSTER1}
-kubectl delete gateway egress-waypoint -n egress --context ${CLUSTER1}
-kubectl delete namespace egress --context ${CLUSTER1}
+kubectl delete authorizationpolicies -n egress --all --context $KUBECONTEXT_CLUSTER1
+kubectl delete serviceentry --all -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete telemetry enable-access-logging -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete gateway egress-waypoint -n egress --context $KUBECONTEXT_CLUSTER1
+kubectl delete namespace egress --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Next Steps

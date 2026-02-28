@@ -14,7 +14,8 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Pre-Migration Check
@@ -22,7 +23,7 @@ export CLUSTER1=cluster1
 Before migrating, confirm the bookinfo workloads are still using sidecar mode. The `zc workloads` command shows the protocol each workload is using:
 
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output — `PROTOCOL=TCP` means workloads are not yet in ambient (they are still using sidecar Envoy for mTLS):
@@ -38,8 +39,8 @@ bookinfo-frontends   productpage-v1-<hash>                 10.x.x.x     ...     
 
 Also confirm pods currently show `2/2 READY` (app + sidecar):
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Step 1 — Remove Sidecar Injection Labels
@@ -47,13 +48,13 @@ kubectl get pods -n bookinfo-backends --context $CLUSTER1
 Remove the `istio-injection=enabled` label from both namespaces. This stops new pods from receiving sidecar injection, but does **not** affect currently running pods:
 
 ```bash
-kubectl label namespace bookinfo-frontends istio-injection- --context $CLUSTER1
-kubectl label namespace bookinfo-backends istio-injection- --context $CLUSTER1
+kubectl label namespace bookinfo-frontends istio-injection- --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace bookinfo-backends istio-injection- --context $KUBECONTEXT_CLUSTER1
 ```
 
 Verify the label is removed:
 ```bash
-kubectl get namespace bookinfo-frontends bookinfo-backends --show-labels --context $CLUSTER1
+kubectl get namespace bookinfo-frontends bookinfo-backends --show-labels --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Step 2 — Enable Ambient Mode
@@ -61,8 +62,8 @@ kubectl get namespace bookinfo-frontends bookinfo-backends --show-labels --conte
 Label both namespaces for ambient enrollment. ztunnel will begin intercepting and securing traffic for any new pods in these namespaces:
 
 ```bash
-kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $CLUSTER1
-kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $CLUSTER1
+kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Step 3 — Restart Pods to Remove Sidecars
@@ -70,20 +71,20 @@ kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --cont
 The currently running pods still have the Envoy sidecar container — they were injected before the label change. Restart all deployments to get fresh pods without sidecars:
 
 ```bash
-kubectl rollout restart deployment -n bookinfo-frontends --context $CLUSTER1
-kubectl rollout restart deployment -n bookinfo-backends --context $CLUSTER1
+kubectl rollout restart deployment -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl rollout restart deployment -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Wait for all deployments to complete the rollout:
 ```bash
-for deploy in $(kubectl get deploy -n bookinfo-frontends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+for deploy in $(kubectl get deploy -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
   echo "Waiting for frontend deployment '$deploy'..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $CLUSTER1
+  kubectl rollout status deploy/"$deploy" -n bookinfo-frontends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 done
 
-for deploy in $(kubectl get deploy -n bookinfo-backends --context $CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
+for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[*].metadata.name}'); do
   echo "Waiting for backend deployment '$deploy'..."
-  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $CLUSTER1
+  kubectl rollout status deploy/"$deploy" -n bookinfo-backends --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 done
 ```
 
@@ -92,8 +93,8 @@ done
 **Key observation:** Pods now show `1/1 READY` — the sidecar container is gone. mTLS is handled transparently by ztunnel at the node level:
 
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:
@@ -111,7 +112,7 @@ reviews-v3-<hash>                1/1     Running   0          30s
 
 Now check the workload protocol with `solo-istioctl`:
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output — `PROTOCOL=HBONE` confirms workloads are enrolled in ambient mesh and mTLS is active via ztunnel:
@@ -132,12 +133,12 @@ bookinfo-frontends   productpage-v1-<hash>                 10.x.x.x     ...     
 Generate a request to the application and inspect ztunnel logs to confirm it is intercepting and securing traffic. Open a second terminal and start tailing the ztunnel logs:
 
 ```bash
-kubectl logs -n istio-system -l app=ztunnel --context $CLUSTER1 -f --prefix
+kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER1 -f --prefix
 ```
 
 In your original terminal, send a request through the ingress gateway:
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 curl http://$SVC/productpage -s -o /dev/null -w "%{http_code}"
 ```
 
@@ -177,14 +178,14 @@ These log fields are the evidence that ztunnel is providing zero-trust mTLS betw
 Confirm the application is still accessible. The migration should be transparent to end users:
 
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 echo http://$SVC/productpage
 curl http://$SVC/productpage | grep -o "<title>.*</title>"
 ```
 
 Or use port-forward if no LoadBalancer:
 ```bash
-kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $CLUSTER1
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 curl http://localhost:9080/productpage | grep -o "<title>.*</title>"
 ```
 

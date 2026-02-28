@@ -18,15 +18,18 @@ With Ambient, enrollment is a single namespace label. ztunnel, running as a Daem
 ## Prerequisites
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
-export CLUSTER2=cluster2
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
+
+export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
 ## Enroll Apps to Ambient Mesh on cluster1
 
 Before enrolling, check the current workload status for the bookinfo namespaces. You should see `TCP` as the protocol, indicating workloads are not yet part of the mesh
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output (TCP — not yet enrolled):
@@ -42,13 +45,13 @@ bookinfo-frontends   productpage-v1-59c74584cf-5fvhq       10.129.0.37  ...     
 
 Enable ambient with namespace label
 ```bash
-kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $CLUSTER1
-kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $CLUSTER1
+kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
 ```
 
 Check workload status again. The protocol should now show `HBONE`, confirming the workloads are enrolled in the ambient mesh and traffic will be encrypted with mTLS. Note that there is no sidecar, and applications are not required to be restarted to enroll in the mesh!
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output (HBONE — enrolled in ambient mesh):
@@ -66,18 +69,18 @@ bookinfo-frontends   productpage-v1-59c74584cf-5fvhq       10.129.0.37  ...     
 
 Before enrolling, check the current workload status for the bookinfo namespaces. You should see `TCP` as the protocol, indicating workloads are not yet part of the mesh
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER2 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER2 | grep "bookinfo"
 ```
 
 Enable ambient with namespace label
 ```bash
-kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $CLUSTER2
-kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $CLUSTER2
+kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER2
+kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER2
 ```
 
 Check workload status again. The protocol should now show `HBONE`, confirming the workloads are enrolled in the ambient mesh
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER2 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER2 | grep "bookinfo"
 ```
 
 ## Next Steps

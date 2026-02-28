@@ -18,14 +18,15 @@ With Ambient, enrollment is a single namespace label. ztunnel, running as a Daem
 ## Set environment variables
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Check workload status before enrollment
 
 Before enrolling, check the current workload status. You should see `TCP` as the protocol, indicating workloads are not yet part of the mesh:
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output (TCP — not yet enrolled):
@@ -43,15 +44,15 @@ bookinfo-frontends   productpage-v1-59c74584cf-5fvhq       10.129.0.37  ...     
 
 Apply the `istio.io/dataplane-mode=ambient` label to both namespaces:
 ```bash
-kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $CLUSTER1
-kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $CLUSTER1
+kubectl label namespace bookinfo-frontends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace bookinfo-backends istio.io/dataplane-mode=ambient --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Validate enrollment
 
 Check the workload status again. The protocol should now show `HBONE`, confirming the workloads are enrolled in the Ambient Mesh and all pod-to-pod traffic is encrypted with mTLS. Note that no pods were restarted:
 ```bash
-./solo-istioctl zc workloads -n istio-system --context $CLUSTER1 | grep "bookinfo"
+./solo-istioctl zc workloads -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep "bookinfo"
 ```
 
 Expected output (HBONE — enrolled in Ambient Mesh):

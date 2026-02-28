@@ -16,7 +16,8 @@
 ## Set Environment Variables
 
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
 export ISTIO_VERSION=1.29.0
 ```
@@ -45,11 +46,11 @@ Install the Solo Istio CNI component with the ambient profile. This replaces the
 
 > **GKE only:** Uncomment `platform: gke` under `global` in the values below before running this command. Also run the GKE resource quota patch first:
 > ```bash
-> kubectl apply -f gke/resourcequota.yaml --context $CLUSTER1
+> kubectl apply -f gke/resourcequota.yaml --context $KUBECONTEXT_CLUSTER1
 > ```
 
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istio-cni oci://us-docker.pkg.dev/soloio-img/istio-helm/cni \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istio-cni oci://us-docker.pkg.dev/soloio-img/istio-helm/cni \
 -n istio-system \
 --version=$ISTIO_VERSION-solo \
 -f -<<EOF
@@ -70,7 +71,7 @@ EOF
 
 Wait for the CNI DaemonSet to roll out on all nodes:
 ```bash
-kubectl rollout status ds/istio-cni-node -n istio-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status ds/istio-cni-node -n istio-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Upgrade `istiod` to Solo Enterprise Ambient
@@ -78,7 +79,7 @@ kubectl rollout status ds/istio-cni-node -n istio-system --watch --timeout=90s -
 Before upgrading, delete the `ValidatingWebhookConfiguration` left by the OSS istiod. When upgrading between different istiod releases (different Helm chart publishers), the existing resource has a `pilot-discovery` field manager that conflicts with the Solo chart's server-side apply. Deleting it is safe — Solo istiod recreates it on install:
 
 ```bash
-kubectl delete validatingwebhookconfiguration istio-validator-istio-system --context $CLUSTER1 --ignore-not-found
+kubectl delete validatingwebhookconfiguration istio-validator-istio-system --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
 Upgrade istiod from the community chart to the Solo OCI chart with ambient profile enabled. The `--install` flag makes this an upgrade-or-install operation.
@@ -86,7 +87,7 @@ Upgrade istiod from the community chart to the Solo OCI chart with ambient profi
 The Solo istiod will pick up the existing `istio-ca-secret` that OSS istiod auto-generated, keeping the same `cluster.local` trust domain and CA root throughout the migration. No certificate rotation is needed — existing sidecar workload certs remain valid during the coexistence period:
 
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install istiod oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istiod oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod \
 -n istio-system \
 --version=$ISTIO_VERSION-solo \
 -f -<<EOF
@@ -102,7 +103,7 @@ EOF
 
 Wait for istiod to roll out:
 ```bash
-kubectl rollout status deploy/istiod -n istio-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status deploy/istiod -n istio-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Install `ztunnel`
@@ -110,7 +111,7 @@ kubectl rollout status deploy/istiod -n istio-system --watch --timeout=90s --con
 ztunnel is the ambient data plane component — a lightweight L4 proxy that runs as a DaemonSet on every node. It handles mTLS transparently for all workloads in ambient-enrolled namespaces. This component does not exist in a standard OSS Istio install:
 
 ```bash
-helm upgrade --kube-context $CLUSTER1 --install ztunnel oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel \
+helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install ztunnel oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel \
 -n istio-system \
 --version=$ISTIO_VERSION-solo \
 -f -<<EOF
@@ -135,14 +136,14 @@ EOF
 
 Wait for ztunnel to roll out across all nodes:
 ```bash
-kubectl rollout status ds/ztunnel -n istio-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status ds/ztunnel -n istio-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Validate the Migration
 
 Check the control plane components:
 ```bash
-kubectl get pods -n istio-system --context $CLUSTER1
+kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 You should now see all three ambient components running alongside the upgraded istiod:
@@ -156,8 +157,8 @@ ztunnel-<hash>            1/1     Running   0          30s   # ambient L4 proxy,
 **Key observation — coexistence period:** Check that the existing Bookinfo pods still have their sidecars. Both models operate simultaneously at this point — the migration is non-disruptive:
 
 ```bash
-kubectl get pods -n bookinfo-frontends --context $CLUSTER1
-kubectl get pods -n bookinfo-backends --context $CLUSTER1
+kubectl get pods -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1
+kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output — pods still show `2/2 READY` (sidecar still attached):

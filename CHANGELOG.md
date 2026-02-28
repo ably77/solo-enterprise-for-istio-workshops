@@ -1,5 +1,10 @@
 # Changelog
 
+0.0.15 - (2-27-26)
+---
+- Move Gateway service annotations to a callout
+- Introduce new cluster naming variables to eliminate naming conflicts
+
 0.0.14 - (2-27-26)
 ---
 - Update expose bookinfo lab with gw-options extension reference example

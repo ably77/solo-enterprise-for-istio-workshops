@@ -10,25 +10,21 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Deploy an Istio Ingress Gateway
 
 Create a Gateway resource using the `istio` GatewayClass:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: ingress
   namespace: istio-system
 spec:
-  infrastructure:
-    parametersRef:
-      group: ""
-      kind: ConfigMap
-      name: gw-options
   gatewayClassName: istio
   listeners:
   - name: http
@@ -37,29 +33,55 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gw-options
-  namespace: istio-system
-data:
-  service: |
-    metadata:
-      annotations:
-        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 EOF
 ```
 
+> **Note:** If your cloud provider requires specific load balancer annotations (for example, to use an NLB on AWS), you can customize the gateway's generated service using `spec.infrastructure.parametersRef`. Replace the command above with the following, which includes a `gw-options` ConfigMap:
+>
+> ```bash
+> kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
+> apiVersion: gateway.networking.k8s.io/v1
+> kind: Gateway
+> metadata:
+>   name: ingress
+>   namespace: istio-system
+> spec:
+>   infrastructure:
+>     parametersRef:
+>       group: ""
+>       kind: ConfigMap
+>       name: gw-options
+>   gatewayClassName: istio
+>   listeners:
+>   - name: http
+>     port: 80
+>     protocol: HTTP
+>     allowedRoutes:
+>       namespaces:
+>         from: All
+> ---
+> apiVersion: v1
+> kind: ConfigMap
+> metadata:
+>   name: gw-options
+>   namespace: istio-system
+> data:
+>   service: |
+>     metadata:
+>       annotations:
+>         service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+> EOF
+> ```
+
 Wait for the gateway pod to be ready:
 ```bash
-kubectl rollout status deploy/ingress-istio -n istio-system --watch --timeout=90s --context $CLUSTER1
+kubectl rollout status deploy/ingress-istio -n istio-system --watch --timeout=90s --context $KUBECONTEXT_CLUSTER1
 ```
 
 Check that the gateway pod and service are running:
 ```bash
-kubectl get pods -n istio-system --context $CLUSTER1
-kubectl get svc -n istio-system --context $CLUSTER1
+kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl get svc -n istio-system --context $KUBECONTEXT_CLUSTER1
 ```
 
 Expected output:
@@ -82,7 +104,7 @@ istiod          ClusterIP      10.96.128.33    <none>          15010/TCP,...  10
 
 Route all traffic from the ingress gateway to the productpage service:
 ```bash
-kubectl apply --context $CLUSTER1 -f - <<EOF
+kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -107,7 +129,7 @@ EOF
 
 Get the external IP and navigate to the app:
 ```bash
-SVC=$(kubectl -n istio-system get svc ingress-istio --context $CLUSTER1 --no-headers | awk '{ print $4 }')
+SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 echo http://$SVC/productpage
 ```
 
@@ -120,7 +142,7 @@ curl http://$SVC/productpage | grep -o "<title>.*</title>"
 
 If your cluster does not have LoadBalancer integration (e.g. kind, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
 ```bash
-kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $CLUSTER1
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 ```
 
 Navigate to http://localhost:9080/productpage or verify with curl:

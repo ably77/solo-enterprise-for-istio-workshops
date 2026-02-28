@@ -10,7 +10,8 @@
 
 Ensure the following environment variables are set:
 ```bash
-export CLUSTER1=cluster1
+export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
 ## Background
@@ -29,13 +30,13 @@ Each Istio component exposes a Prometheus-format `/metrics` endpoint. `kubectl p
 ztunnel is a DaemonSet — one pod per node. Get any ztunnel pod name:
 ```bash
 ZTUNNEL_POD=$(kubectl get pods -n istio-system -l app=ztunnel \
-  --context $CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
+  --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
 echo $ZTUNNEL_POD
 ```
 
 Port-forward to the ztunnel pod's metrics port:
 ```bash
-kubectl port-forward -n istio-system $ZTUNNEL_POD 15020:15020 --context $CLUSTER1 &
+kubectl port-forward -n istio-system $ZTUNNEL_POD 15020:15020 --context $KUBECONTEXT_CLUSTER1 &
 PORT_FORWARD_PID=$!
 sleep 2
 ```
@@ -43,7 +44,7 @@ sleep 2
 Generate traffic through the mesh so that ztunnel records connections and requests:
 ```bash
 for i in $(seq 1 5); do
-  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $CLUSTER1 -- \
+  kubectl exec deploy/productpage-v1 -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 -- \
     python3 -c "import urllib.request, json; print(json.dumps(json.load(urllib.request.urlopen('http://reviews.bookinfo-backends:9080/reviews/0')), indent=2))"
 done
 ```
@@ -77,7 +78,7 @@ kill $PORT_FORWARD_PID
 
 Port-forward to istiod's metrics port:
 ```bash
-kubectl port-forward -n istio-system svc/istiod 15014:15014 --context $CLUSTER1 &
+kubectl port-forward -n istio-system svc/istiod 15014:15014 --context $KUBECONTEXT_CLUSTER1 &
 ISTIOD_PID=$!
 sleep 2
 ```

@@ -83,8 +83,8 @@ function create_cacerts_secret() {
     --from-file=${cluster}/cert-chain.pem
 }
 
-create_cacerts_secret ${CLUSTER1} cluster1
-create_cacerts_secret ${CLUSTER2} cluster2
+create_cacerts_secret $KUBECONTEXT_CLUSTER1 cluster1
+create_cacerts_secret $KUBECONTEXT_CLUSTER2 cluster2
 cd ../../
 ```
 
