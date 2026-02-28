@@ -1,5 +1,9 @@
 # Changelog
 
+0.1.1 - (2-27-26)
+---
+- Add callout to ingress labs on how to configure TLS with an HTTPS listener
+
 0.1.0 - (2-27-26)
 ---
 - Remove unused `MESH_NAME_CLUSTER1` variable references from `istio-oss-sidecar-to-enterprise-ambient` workshop

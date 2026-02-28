@@ -75,6 +75,32 @@ EOF
 > EOF
 > ```
 
+> **Note:** If your environment requires TLS termination at the gateway (port 443), first store your certificate and key in a Kubernetes Secret:
+>
+> ```bash
+> kubectl create secret tls https \
+>   --cert=path/to/cert.pem \
+>   --key=path/to/key.pem \
+>   -n istio-system --context $KUBECONTEXT_CLUSTER1
+> ```
+>
+> Then replace the `listeners` block in the Gateway with an HTTPS listener:
+>
+> ```yaml
+> listeners:
+> - name: https
+>   port: 443
+>   protocol: HTTPS
+>   tls:
+>     mode: Terminate
+>     certificateRefs:
+>     - name: https
+>       kind: Secret
+>   allowedRoutes:
+>     namespaces:
+>       from: All
+> ```
+
 Verify the gateway pod and service have been created in `istio-system`:
 ```bash
 kubectl get pods -n istio-system --context $KUBECONTEXT_CLUSTER1
