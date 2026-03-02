@@ -1,5 +1,9 @@
 # Changelog
 
+0.1.2 - (3-2-26)
+---
+- Add example `/envoyfilter` lab in `/istio-oss-sidecar-to-enterprise-ambient` workshop
+
 0.1.1 - (2-27-26)
 ---
 - Add callout to ingress labs on how to configure TLS with an HTTPS listener
