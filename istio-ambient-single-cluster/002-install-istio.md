@@ -111,7 +111,8 @@ openssl req -x509 -sha256 -nodes -days 3650 \
   -newkey rsa:2048 \
   -keyout "$WORK_DIR/root-key.pem" \
   -out "$WORK_DIR/root-cert.pem" \
-  -config "$WORK_DIR/root-openssl.cnf"
+  -config "$WORK_DIR/root-openssl.cnf" \
+  -extensions v3_ca
 
 openssl req -new -nodes -newkey rsa:2048 \
   -keyout "$WORK_DIR/ca-key.pem" \
