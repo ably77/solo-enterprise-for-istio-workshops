@@ -1,5 +1,9 @@
 # Changelog
 
+0.1.3 - (3-31-26)
+---
+- update CA cert script to generate proper certs with CA:TRUE
+
 0.1.2 - (3-2-26)
 ---
 - Add example `/envoyfilter` lab in `/istio-oss-sidecar-to-enterprise-ambient` workshop
