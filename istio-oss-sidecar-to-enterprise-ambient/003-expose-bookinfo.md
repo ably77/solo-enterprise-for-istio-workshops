@@ -165,7 +165,7 @@ curl http://$SVC/productpage | grep -o "<title>.*</title>"
 
 ### No LoadBalancer? Use Port-Forward
 
-If your cluster does not have LoadBalancer integration (e.g. kind, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
+If your cluster does not have LoadBalancer integration (e.g. Kind, Colima, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
 ```bash
 kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 ```

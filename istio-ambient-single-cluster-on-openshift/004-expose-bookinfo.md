@@ -161,6 +161,18 @@ Or verify with curl:
 curl http://$SVC/productpage
 ```
 
+### No LoadBalancer? Use Port-Forward
+
+If your cluster does not have LoadBalancer integration (e.g. Kind, Colima, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
+```bash
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
+```
+
+Navigate to http://localhost:9080/productpage or verify with curl:
+```bash
+curl http://localhost:9080/productpage | grep -o "<title>.*</title>"
+```
+
 ## Observe ztunnel Intercepting Traffic
 
 Generate a request to the application and inspect ztunnel logs to confirm it is intercepting and securing traffic. Open a second terminal and start tailing the ztunnel logs:
