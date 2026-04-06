@@ -46,26 +46,70 @@ Both clusters must share the same root of trust so that workloads can verify eac
 ```bash
 WORK_DIR=$(mktemp -d)
 
+cat > "$WORK_DIR/root-openssl.cnf" <<'CNFEOF'
+[ req ]
+prompt = no
+distinguished_name = dn
+x509_extensions = v3_ca
+
+[ dn ]
+C  = US
+ST = California
+L  = San Francisco
+O  = MyOrg
+OU = MyUnit
+CN = root-cert
+
+[ v3_ca ]
+basicConstraints = critical, CA:TRUE, pathlen:1
+keyUsage = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+CNFEOF
+
+cat > "$WORK_DIR/intermediate-req.cnf" <<'CNFEOF'
+[ req ]
+prompt = no
+distinguished_name = dn
+
+[ dn ]
+C  = US
+ST = California
+L  = San Francisco
+O  = MyOrg
+OU = MyUnit
+CN = istio-intermediate-ca
+CNFEOF
+
+cat > "$WORK_DIR/ca-ext.cnf" <<'CNFEOF'
+[v3_ca]
+basicConstraints = critical, CA:TRUE, pathlen:0
+keyUsage = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+CNFEOF
+
 openssl req -x509 -sha256 -nodes -days 3650 \
   -newkey rsa:2048 \
-  -keyout "$WORK_DIR/ca-key.pem" \
-  -out "$WORK_DIR/ca-cert.pem" \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=root-cert"
+  -keyout "$WORK_DIR/root-key.pem" \
+  -out "$WORK_DIR/root-cert.pem" \
+  -config "$WORK_DIR/root-openssl.cnf" \
+  -extensions v3_ca
 
-openssl req -newkey rsa:2048 -nodes \
-  -keyout "$WORK_DIR/intermediate-key.pem" \
-  -out "$WORK_DIR/intermediate-csr.pem" \
-  -subj "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=intermediate-cert"
+openssl req -new -nodes -newkey rsa:2048 \
+  -keyout "$WORK_DIR/ca-key.pem" \
+  -out "$WORK_DIR/ca.csr" \
+  -config "$WORK_DIR/intermediate-req.cnf"
 
 openssl x509 -req -sha256 -days 3650 \
-  -in "$WORK_DIR/intermediate-csr.pem" \
-  -CA "$WORK_DIR/ca-cert.pem" \
-  -CAkey "$WORK_DIR/ca-key.pem" \
+  -in "$WORK_DIR/ca.csr" \
+  -CA "$WORK_DIR/root-cert.pem" \
+  -CAkey "$WORK_DIR/root-key.pem" \
   -CAcreateserial \
-  -CAserial "$WORK_DIR/ca-cert.srl" \
-  -out "$WORK_DIR/intermediate-cert.pem"
+  -out "$WORK_DIR/ca-cert.pem" \
+  -extfile "$WORK_DIR/ca-ext.cnf" \
+  -extensions v3_ca
 
-cat "$WORK_DIR/intermediate-cert.pem" "$WORK_DIR/ca-cert.pem" > "$WORK_DIR/cert-chain.pem"
+cat "$WORK_DIR/ca-cert.pem" "$WORK_DIR/root-cert.pem" > "$WORK_DIR/cert-chain.pem"
 
 cat <<EOF > shared-root-trust-secret.yaml
 apiVersion: v1
@@ -78,7 +122,7 @@ data:
   ca-cert.pem: $(base64 < "$WORK_DIR/ca-cert.pem" | tr -d '\n')
   ca-key.pem: $(base64 < "$WORK_DIR/ca-key.pem" | tr -d '\n')
   cert-chain.pem: $(base64 < "$WORK_DIR/cert-chain.pem" | tr -d '\n')
-  root-cert.pem: $(base64 < "$WORK_DIR/ca-cert.pem" | tr -d '\n')
+  root-cert.pem: $(base64 < "$WORK_DIR/root-cert.pem" | tr -d '\n')
 EOF
 
 rm -rf "$WORK_DIR"

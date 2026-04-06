@@ -1,5 +1,10 @@
 # Changelog
 
+0.1.3 - (4-6-26)
+---
+- Update CA cert script to generate proper certs with CA:TRUE
+- Add `008-tracing.md` lab to istio-ambient-single-cluster. Move cleanup lab to `009`
+
 0.1.2 - (3-2-26)
 ---
 - Add example `/envoyfilter` lab in `/istio-oss-sidecar-to-enterprise-ambient` workshop
