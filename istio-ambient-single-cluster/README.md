@@ -32,7 +32,8 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a sing
 | [005-egress.md](005-egress.md) | Egress control with a waypoint |
 | [006-waypoints.md](006-waypoints.md) | L7 traffic management with waypoints |
 | [007-observability.md](007-observability.md) | Observability — inspecting Istio Ambient metrics |
-| [008-cleanup.md](008-cleanup.md) | Teardown |
+| [008-tracing.md](008-tracing.md) | Distributed tracing |
+| [009-cleanup.md](009-cleanup.md) | Teardown |
 
 ## Getting Started
 

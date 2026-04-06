@@ -1,8 +1,9 @@
 # Changelog
 
-0.1.3 - (3-31-26)
+0.1.3 - (4-6-26)
 ---
-- update CA cert script to generate proper certs with CA:TRUE
+- Update CA cert script to generate proper certs with CA:TRUE
+- Add `008-tracing.md` lab to istio-ambient-single-cluster. Move cleanup lab to `009`
 
 0.1.2 - (3-2-26)
 ---
