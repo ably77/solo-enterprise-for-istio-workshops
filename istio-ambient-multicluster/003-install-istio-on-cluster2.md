@@ -16,6 +16,8 @@ export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context
 export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 ```
 
+> **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. Set `KUBECONTEXT_CLUSTER2=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER2=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER2` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
+
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
@@ -34,7 +36,7 @@ Install istio-base
 ```bash
 helm upgrade --kube-context $KUBECONTEXT_CLUSTER2 --install istio-base oci://us-docker.pkg.dev/soloio-img/istio-helm/base -n istio-system --version $ISTIO_VERSION-solo --create-namespace
 
-kubectl label namespace istio-system topology.istio.io/network=$CLUSTER2 --context $KUBECONTEXT_CLUSTER2
+kubectl label namespace istio-system topology.istio.io/network=$MESH_NAME_CLUSTER2 --context $KUBECONTEXT_CLUSTER2
 ```
 
 Install Kubernetes Gateway CRDs if not already present
