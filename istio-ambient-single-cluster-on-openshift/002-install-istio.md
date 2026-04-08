@@ -47,7 +47,8 @@ ARCH=$(uname -m | sed -E 's/aarch/arm/; s/x86_64/amd64/; s/armv7l/armv7/')
 
 INSTALL_DIR="."
 mkdir -p "$INSTALL_DIR"
-curl -sSL https://storage.googleapis.com/soloio-istio-binaries/release/${ISTIO_VERSION}-solo/istioctl-${ISTIO_VERSION}-solo-${OS}-${ARCH}.tar.gz | tar xzf - -C "$INSTALL_DIR"
+ISTIOCTL_URL="https://storage.googleapis.com/soloio-istio-binaries/release/${ISTIO_VERSION}-solo/istioctl-${ISTIO_VERSION}-solo-${OS}-${ARCH}.tar.gz"
+curl -sSL "$ISTIOCTL_URL" | tar xzf - -C "$INSTALL_DIR"
 mv "${INSTALL_DIR}/istioctl" "${INSTALL_DIR}/solo-istioctl"
 chmod +x "${INSTALL_DIR}/solo-istioctl"
 ```

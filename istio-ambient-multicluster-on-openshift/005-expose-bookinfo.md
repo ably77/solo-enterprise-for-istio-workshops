@@ -149,6 +149,18 @@ Or verify with curl
 curl http://$SVC/productpage
 ```
 
+### No LoadBalancer? Use Port-Forward
+
+If your cluster does not have LoadBalancer integration (e.g. Kind, Colima, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
+```bash
+kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
+```
+
+Navigate to http://localhost:9080/productpage or verify with curl:
+```bash
+curl http://localhost:9080/productpage | grep -o "<title>.*</title>"
+```
+
 ## Next Steps
 At this point we have completed the following objectives
 - Deployed an Istio Ingress Gateway on cluster1
