@@ -153,7 +153,11 @@ EOF
 Get the external IP of the ingress gateway service and open the application in your browser:
 ```bash
 SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
-echo http://$SVC/productpage
+if [[ "$SVC" == "<pending>" || -z "$SVC" || "$SVC" == "<none>" ]]; then
+  echo "⚠️  No external LoadBalancer IP available. See the 'No LoadBalancer? Use Port-Forward' section below."
+else
+  echo http://$SVC/productpage
+fi
 ```
 
 Or verify with curl:

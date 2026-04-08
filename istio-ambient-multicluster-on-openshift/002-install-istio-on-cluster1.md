@@ -16,7 +16,7 @@ export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context
 export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
-> **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. Set `KUBECONTEXT_CLUSTER1=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER1=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER1` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
+> **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER1=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER1=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER1` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
 
 And export your Gloo Mesh license key variable and Istio version
 ```bash

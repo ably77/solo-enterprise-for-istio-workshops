@@ -6,6 +6,7 @@
 - Add KinD callout to all install docs warning that `KUBECONTEXT_CLUSTER*` should include the `kind-` prefix but `MESH_NAME_CLUSTER*` should not
 - Refactor `solo-istioctl` download to extract URL into `$ISTIOCTL_URL` variable across all workshops
 - Add port-forward fallback section to expose-bookinfo labs in multicluster-on-openshift, single-cluster, and single-cluster-on-openshift workshops
+- Add LoadBalancer check to `SVC=` command in expose-bookinfo labs — prints warning and directs to port-forward section if IP is pending or unavailable
 
 0.1.3 - (4-6-26)
 ---

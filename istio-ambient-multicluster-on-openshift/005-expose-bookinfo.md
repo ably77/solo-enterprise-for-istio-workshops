@@ -141,7 +141,11 @@ EOF
 Since no hostname is configured on the HTTPRoute, the application is accessible directly via the LoadBalancer address. Get the external IP of the ingress gateway service and navigate to the URL in your browser
 ```bash
 SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
-echo http://$SVC/productpage
+if [[ "$SVC" == "<pending>" || -z "$SVC" || "$SVC" == "<none>" ]]; then
+  echo "⚠️  No external LoadBalancer IP available. See the 'No LoadBalancer? Use Port-Forward' section below."
+else
+  echo http://$SVC/productpage
+fi
 ```
 
 Or verify with curl
