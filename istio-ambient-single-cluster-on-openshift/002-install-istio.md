@@ -31,6 +31,8 @@ export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context
 export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 ```
 
+> **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER1=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER1=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER1` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
+
 Export your Solo.io license key and Istio version:
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
@@ -45,7 +47,8 @@ ARCH=$(uname -m | sed -E 's/aarch/arm/; s/x86_64/amd64/; s/armv7l/armv7/')
 
 INSTALL_DIR="."
 mkdir -p "$INSTALL_DIR"
-curl -sSL https://storage.googleapis.com/soloio-istio-binaries/release/${ISTIO_VERSION}-solo/istioctl-${ISTIO_VERSION}-solo-${OS}-${ARCH}.tar.gz | tar xzf - -C "$INSTALL_DIR"
+ISTIOCTL_URL="https://storage.googleapis.com/soloio-istio-binaries/release/${ISTIO_VERSION}-solo/istioctl-${ISTIO_VERSION}-solo-${OS}-${ARCH}.tar.gz"
+curl -sSL "$ISTIOCTL_URL" | tar xzf - -C "$INSTALL_DIR"
 mv "${INSTALL_DIR}/istioctl" "${INSTALL_DIR}/solo-istioctl"
 chmod +x "${INSTALL_DIR}/solo-istioctl"
 ```
@@ -160,7 +163,7 @@ kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER1
 
 Label the namespace with the network identity. This tag is how ztunnel and istiod know which network they belong to — required for cross-cluster HBONE routing in multicluster:
 ```bash
-kubectl label namespace istio-system topology.istio.io/network=$CLUSTER1 --context $KUBECONTEXT_CLUSTER1
+kubectl label namespace istio-system topology.istio.io/network=$MESH_NAME_CLUSTER1 --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Install Istio using Helm

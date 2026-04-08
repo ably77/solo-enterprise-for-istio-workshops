@@ -142,7 +142,11 @@ EOF
 Get the external IP of the ingress gateway service and navigate to the URL in your browser
 ```bash
 SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
-echo http://$SVC/productpage
+if [[ "$SVC" == "<pending>" || -z "$SVC" || "$SVC" == "<none>" ]]; then
+  echo "⚠️  No external LoadBalancer IP available. See the 'No LoadBalancer? Use Port-Forward' section below."
+else
+  echo http://$SVC/productpage
+fi
 ```
 
 Or verify with curl
@@ -152,7 +156,7 @@ curl http://$SVC/productpage
 
 ### No LoadBalancer? Use port-forward
 
-If your cluster does not have LoadBalancer integration (e.g. kind, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
+If your cluster does not have LoadBalancer integration (e.g. Kind, minikube, or bare-metal without MetalLB), the `EXTERNAL-IP` field will remain `<pending>`. Port-forward directly to the productpage service instead:
 ```bash
 kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
 ```
