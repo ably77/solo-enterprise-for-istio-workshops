@@ -1,5 +1,11 @@
 # Changelog
 
+0.1.5 - (5-13-26)
+---
+- Rewrite `013-install-gme-control-plane.md` → `013-install-solo-ui.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift` — replace legacy Gloo Platform 2.12.0 control-plane install with the latest Solo Management UI (mesh product view) plus a workload-cluster relay that tunnels via Istio Ambient `mesh.internal`
+- OpenShift variant: add a single Route for `solo-enterprise-ui`; drop the legacy `gloo-mesh-mgmt-server`/`gloo-telemetry-gateway` Routes and the privileged SCC rolebinding (new charts don't require them)
+- Update workshop READMEs to point to the renamed lab 013
+
 0.1.4 - (4-8-26)
 ---
 - Fix undefined `$CLUSTER1`/`$CLUSTER2` in `topology.istio.io/network` label commands — replace with `$MESH_NAME_CLUSTER1`/`$MESH_NAME_CLUSTER2` across all install docs

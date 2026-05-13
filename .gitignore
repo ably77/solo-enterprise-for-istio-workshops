@@ -13,7 +13,7 @@ credentials.json
 *-credentials.yaml
 
 # Local configuration
-.claude/settings.local.json
+.claude/
 
 # System files
 .DS_Store
