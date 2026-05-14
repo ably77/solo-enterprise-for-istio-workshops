@@ -27,11 +27,27 @@ export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context
 
 This lab assumes `SOLO_TRIAL_LICENSE_KEY` is already exported from earlier in the workshop.
 
+## OpenShift SCC for ClickHouse
+
+The chart's ClickHouse statefulset runs as UID/GID `101` (the upstream `clickhouse/clickhouse-server` image's `clickhouse` user). OpenShift's default `restricted-v2` SCC rejects this — UIDs must fall in the namespace's auto-assigned range (e.g. `1000760000-1000769999`). Without an `anyuid` binding, the ClickHouse pod is never created (admission denies the statefulset's pod template):
+```
+provider restricted-v2: .spec.securityContext.fsGroup: Invalid value: []int64{101}: 101 is not an allowed group
+provider restricted-v2: .containers[0].runAsUser: Invalid value: 101: must be in the ranges: [1000760000, 1000769999]
+```
+
+Pre-grant `anyuid` to the ClickHouse service account on cluster1 (the SCC binding can reference a service account before it exists):
+```bash
+kubectl create namespace kagent --context $KUBECONTEXT_CLUSTER1 2>/dev/null || true
+oc --context $KUBECONTEXT_CLUSTER1 adm policy add-scc-to-user anyuid -z management-clickhouse -n kagent
+```
+
+> **Why this is needed:** The other workloads in the chart (`solo-enterprise-ui`, `solo-enterprise-telemetry-collector`) already set `runAsNonRoot: true` with no hardcoded UID, so OpenShift can auto-assign a UID and they run cleanly under `restricted-v2`. Only ClickHouse hardcodes UID `101`. The relay chart installed on cluster2 below has no equivalent issue — no additional SCC binding is required there.
+
 ## Install the Solo Management UI on cluster1
 
 Install the `management` chart. This installs ClickHouse (telemetry storage), the Solo Enterprise telemetry collector, and the Solo Enterprise UI with the **mesh** product view enabled. The chart enables Istio ambient integration by default — it automatically labels its own pods with `istio.io/dataplane-mode=ambient` and labels the `solo-enterprise-ui` and `solo-enterprise-telemetry-gateway` services with `solo.io/service-scope=global`, so the workload cluster's relay can reach them over the ambient mesh via `*.mesh.internal`.
 
-> **OpenShift note:** The management and relay charts run their pods with `runAsNonRoot: true` and `readOnlyRootFilesystem: true` by default. These are compatible with the OpenShift `restricted-v2` SCC out of the box — no additional SCC overrides or rolebindings are required. Neither chart needs host-level access.
+> **OpenShift ambient probes:** With ambient enrollment, kubelet readiness/liveness probes are SNAT-rewritten in the host netns by istio-cni. This only works when OVN-Kubernetes is running in **local gateway mode** (`routingViaHost: true`) — see the OpenShift prerequisite in [002-install-istio-on-cluster1.md](002-install-istio-on-cluster1.md#openshift-platform-prerequisite-ovn-kubernetes-local-gateway-mode). On a default OpenShift install (shared gateway mode), the chart's pods will CrashLoop on liveness because every probe times out.
 
 > **Private registry users:** Each component below includes a commented-out `image` override block. Uncomment and update the `registry`, `repository`, and `tag` fields to point to your private registry before running this command. For most users a single `global.image` override is sufficient — the per-component blocks are provided for finer-grained control.
 
@@ -64,6 +80,17 @@ products:
     enabled: false
 licensing:
   licenseKey: "${SOLO_TRIAL_LICENSE_KEY}"
+# Reduce ClickHouse resource requests below chart defaults (2 CPU / 3Gi memory) so the pod schedules on small workshop clusters.
+# Remove this block for production deployments — the chart defaults are sized for real telemetry volume.
+clickhouse:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 2
+      memory: 4Gi
 # override (tunnel server image)
 #tunnelserver:
 #  registry: us-docker.pkg.dev/solo-public

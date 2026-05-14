@@ -11,6 +11,9 @@
 - Update Solo UI lab images from `gloo-ui-{1,2}.png` to `solo-ui-{1,2,3}.png` across both multicluster Solo UI labs
 - Add `.claude/` to `.gitignore`
 - Strip `meshctl` references from all workshops (`000-prerequisites.md`, `000-tools.md`, workshop READMEs) — debug tooling for the retired Gloo Mesh Enterprise stack
+- Add OpenShift OVN-Kubernetes local gateway mode (`routingViaHost: true`) prerequisite to ambient install labs — `istio-ambient-single-cluster-on-openshift/002-install-istio.md` and `istio-ambient-multicluster-on-openshift/00{2,3}-install-istio-on-cluster{1,2}.md` — without it kubelet probes to ambient-enrolled pods time out and CrashLoop on OCP IPI
+- Solo UI labs on OpenShift (`istio-ambient-single-cluster-on-openshift/008-install-solo-ui.md` and `istio-ambient-multicluster-on-openshift/013-install-solo-ui.md`): pre-grant `anyuid` SCC to the `management-clickhouse` service account (ClickHouse hardcodes UID 101 which `restricted-v2` rejects), add a `clickhouse.resources` override (500m CPU / 1Gi memory request) so the pod schedules on workshop-sized clusters, and replace the incorrect "compatible with `restricted-v2`" note with the OVN-K probe-timeout warning
+- Add cross-cluster DNS propagation callout after `solo-istioctl multicluster link` in `istio-ambient-multicluster-on-openshift/006-multicluster-global-mesh.md` — fresh AWS NLB hostnames take 30–90s to resolve from CoreDNS; the failover test returns 503s if attempted before the istiod peering link is established
 
 0.1.4 - (4-8-26)
 ---
