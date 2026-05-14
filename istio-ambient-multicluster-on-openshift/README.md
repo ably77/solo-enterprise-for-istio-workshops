@@ -14,7 +14,6 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 
 - A valid Solo.io license key
 - `solo-istioctl` — see [000-tools.md](000-tools.md)
-- `meshctl` — see [000-tools.md](000-tools.md)
 - `helm`
 - `oc` (OpenShift CLI)
 - Two OpenShift clusters (4.16+)

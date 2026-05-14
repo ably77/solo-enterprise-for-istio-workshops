@@ -14,7 +14,6 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 
 - A valid Solo.io license key
 - `solo-istioctl` — see [000-tools.md](000-tools.md)
-- `meshctl` — see [000-tools.md](000-tools.md)
 - `helm`
 - Two Kubernetes clusters (≥ 1.29)
 - (Optional) Vegeta for load generation — see [000-tools.md](000-tools.md)

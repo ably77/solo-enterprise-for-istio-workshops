@@ -2,11 +2,10 @@
 
 1. A valid Solo.io license key (`$SOLO_TRIAL_LICENSE_KEY`)
 2. `solo-istioctl` installed ([Solo istioctl installation](000-tools.md#solos-istioctl-binary))
-3. `meshctl` installed ([meshctl installation](000-tools.md#meshctl-for-debugging-gme-related-resources))
-4. `helm` installed
-5. A Kubernetes cluster ≥ 1.29
-6. `openssl` available in your shell — used in lab `004` to generate the shared root trust CA. macOS and Linux include this by default. Windows users must use WSL or Git Bash.
-7. Optional: Vegeta for load generation ([Vegeta installation](000-tools.md#vegeta-cli-load-generator))
+3. `helm` installed
+4. A Kubernetes cluster ≥ 1.29
+5. `openssl` available in your shell — used in lab `004` to generate the shared root trust CA. macOS and Linux include this by default. Windows users must use WSL or Git Bash.
+6. Optional: Vegeta for load generation ([Vegeta installation](000-tools.md#vegeta-cli-load-generator))
 
 ## Repos / Images
 

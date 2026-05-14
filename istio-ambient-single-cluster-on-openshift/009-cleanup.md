@@ -2,6 +2,14 @@
 
 Remove all workshop resources from the cluster.
 
+## Solo Management UI
+
+```bash
+kubectl delete route solo-enterprise-ui -n kagent --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+helm uninstall management -n kagent --kube-context $KUBECONTEXT_CLUSTER1
+kubectl delete namespace kagent --context $KUBECONTEXT_CLUSTER1
+```
+
 ## Bookinfo application
 
 ```bash

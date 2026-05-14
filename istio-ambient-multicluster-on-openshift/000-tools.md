@@ -39,31 +39,6 @@ Useful commands:
 ./solo-istioctl waypoint
 ```
 
-#### MeshCTL for debugging GME related resources:
-
-```bash
-curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.8.0 sh -
-export PATH=$HOME/.gloo-mesh/bin:$PATH
-```
-
-Useful Commands:
-```bash
-#check License Key
-meshctl license check
-
-#check environment before GME install
-meshctl precheck
-
-#check status of Gloo Mesh Server / Agent
-meshctl check
-
-#generate debug report 
-meshctl debug report
-
-#launch dashboard (can portforward 8090 on the ui pod as well)
-meshctl dashboard
-```
-
 ### Configure Trust  and Namespaces- Issue Intermediate Certs
 ```bash
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh 
