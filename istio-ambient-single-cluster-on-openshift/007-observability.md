@@ -281,4 +281,4 @@ At this point we have completed the following objectives:
 - Inspected istiod metrics to observe control plane config push activity and proxy convergence latency
 - Configured OpenShift User Workload Monitoring to persistently scrape all Istio Ambient components
 
-In the next step `008` we will clean up all workshop resources.
+In the next step `008` we will install the Solo Management UI.

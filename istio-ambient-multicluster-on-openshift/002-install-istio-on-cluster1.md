@@ -18,6 +18,30 @@ export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 
 > **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER1=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER1=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER1` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
 
+## OpenShift platform prerequisite: OVN-Kubernetes local gateway mode
+
+Ambient mode on OpenShift requires OVN-Kubernetes to run in **local gateway mode** (`routingViaHost: true`). By default, OpenShift's OVN-Kubernetes uses **shared gateway mode**, where pod traffic bypasses the host netfilter stack via OVS. In shared mode, kubelet readiness/liveness probes destined for ambient-enrolled pods are silently dropped because the SNAT and postrouting iptables rules that istio-cni installs in the host network namespace never get hit — the probes appear as `i/o timeout` and pods CrashLoop on liveness failure. This affects the east-west gateway in lab `006` and the Solo UI workloads in lab `013` as well.
+
+Switch the Cluster Network Operator to local gateway mode on cluster1 (one-time, cluster-wide):
+```bash
+oc --context $KUBECONTEXT_CLUSTER1 patch network.operator cluster --type=merge \
+  -p='{"spec":{"defaultNetwork":{"ovnKubernetesConfig":{"gatewayConfig":{"routingViaHost":true}}}}}'
+```
+
+Wait for `ovnkube-node` to roll out the new config (a few minutes; nodes are reconfigured in-place):
+```bash
+oc --context $KUBECONTEXT_CLUSTER1 rollout status -n openshift-ovn-kubernetes ds/ovnkube-node --timeout=300s
+```
+
+Verify:
+```bash
+oc --context $KUBECONTEXT_CLUSTER1 get network.operator cluster \
+  -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.routingViaHost}{"\n"}'
+# Expected output: true
+```
+
+> **Reference:** [Istio Ambient — OpenShift platform prerequisites](https://istio.io/latest/docs/ambient/install/platform-prerequisites/)
+
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY

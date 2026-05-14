@@ -1,5 +1,20 @@
 # Changelog
 
+0.1.5 - (5-14-26)
+---
+- Rewrite `013-install-gme-control-plane.md` → `013-install-solo-ui.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift` — replace legacy Gloo Platform 2.12.0 control-plane install with the latest Solo Management UI (mesh product view) plus a workload-cluster relay that tunnels via Istio Ambient `mesh.internal`
+- OpenShift variant: add a single Route for `solo-enterprise-ui`; drop the legacy `gloo-mesh-mgmt-server`/`gloo-telemetry-gateway` Routes and the privileged SCC rolebinding (new charts don't require them)
+- Update workshop READMEs to point to the renamed lab 013
+- Add `008-install-solo-ui.md` to `istio-ambient-single-cluster-on-openshift` (with OpenShift Route); renumber `008-cleanup.md` → `009-cleanup.md` and include Solo UI uninstall
+- Add `009-install-solo-ui.md` to `istio-ambient-single-cluster` (port-forward only); renumber `009-cleanup.md` → `010-cleanup.md` and include Solo UI uninstall
+- Update top-level README — switch workshop descriptions from "Gloo UI" to "Solo Management UI", add a Solo Management UI use-case row, replace Gloo Platform version with Solo Management UI version, drop `meshctl` prerequisite
+- Update Solo UI lab images from `gloo-ui-{1,2}.png` to `solo-ui-{1,2,3}.png` across both multicluster Solo UI labs
+- Add `.claude/` to `.gitignore`
+- Strip `meshctl` references from all workshops (`000-prerequisites.md`, `000-tools.md`, workshop READMEs) — debug tooling for the retired Gloo Mesh Enterprise stack
+- Add OpenShift OVN-Kubernetes local gateway mode (`routingViaHost: true`) prerequisite to ambient install labs — `istio-ambient-single-cluster-on-openshift/002-install-istio.md` and `istio-ambient-multicluster-on-openshift/00{2,3}-install-istio-on-cluster{1,2}.md` — without it kubelet probes to ambient-enrolled pods time out and CrashLoop on OCP IPI
+- Solo UI labs on OpenShift (`istio-ambient-single-cluster-on-openshift/008-install-solo-ui.md` and `istio-ambient-multicluster-on-openshift/013-install-solo-ui.md`): pre-grant `anyuid` SCC to the `management-clickhouse` service account (ClickHouse hardcodes UID 101 which `restricted-v2` rejects), add a `clickhouse.resources` override (500m CPU / 1Gi memory request) so the pod schedules on workshop-sized clusters, and replace the incorrect "compatible with `restricted-v2`" note with the OVN-K probe-timeout warning
+- Add cross-cluster DNS propagation callout after `solo-istioctl multicluster link` in `istio-ambient-multicluster-on-openshift/006-multicluster-global-mesh.md` — fresh AWS NLB hostnames take 30–90s to resolve from CoreDNS; the failover test returns 503s if attempted before the istiod peering link is established
+
 0.1.4 - (4-8-26)
 ---
 - Fix undefined `$CLUSTER1`/`$CLUSTER2` in `topology.istio.io/network` label commands — replace with `$MESH_NAME_CLUSTER1`/`$MESH_NAME_CLUSTER2` across all install docs

@@ -57,6 +57,12 @@ Link the e/w gateways gateways
 ./solo-istioctl multicluster link --contexts=$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2 --namespace istio-gateways
 ```
 
+> **Wait for cross-cluster DNS to propagate before testing.** Each cluster's istiod opens an xDS peering connection to the other cluster's east-west gateway via its LoadBalancer hostname (e.g. an AWS NLB DNS name). On freshly-provisioned LoadBalancers, that hostname may take 30–90 seconds to resolve from the cluster's CoreDNS. Until DNS resolves, istiod will log `dial tcp: lookup ...elb.amazonaws.com on <coredns>:53: no such host` and `disconnected, retrying` against the peer, no `WorkloadEntry` will be created for the remote cluster, and the failover test below will return 503s. Tail istiod and wait for the `disconnected, retrying` lines to stop and a `received response ... type=...FederatedService` line to appear before continuing:
+>
+> ```bash
+> kubectl logs -n istio-system -l app=istiod --context $KUBECONTEXT_CLUSTER1 -f --tail=20 | grep -E "disconnected|FederatedService|WorkloadEntry"
+> ```
+
 ## Configure a global service
 
 To make `productpage` available across both clusters, we apply two things to the service in each cluster:

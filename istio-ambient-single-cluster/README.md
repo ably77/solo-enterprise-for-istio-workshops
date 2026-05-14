@@ -33,7 +33,8 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a sing
 | [006-waypoints.md](006-waypoints.md) | L7 traffic management with waypoints |
 | [007-observability.md](007-observability.md) | Observability — inspecting Istio Ambient metrics |
 | [008-tracing.md](008-tracing.md) | Distributed tracing |
-| [009-cleanup.md](009-cleanup.md) | Teardown |
+| [009-install-solo-ui.md](009-install-solo-ui.md) | Install the Solo Management UI |
+| [010-cleanup.md](010-cleanup.md) | Teardown |
 
 ## Getting Started
 

@@ -18,6 +18,22 @@ export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 
 > **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER2=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER2=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER2` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
 
+## OpenShift platform prerequisite: OVN-Kubernetes local gateway mode
+
+Same prerequisite as lab `002` — ambient on OpenShift needs OVN-Kubernetes in local gateway mode (`routingViaHost: true`), otherwise kubelet probes to ambient-enrolled pods time out and the workloads CrashLoop. See [002-install-istio-on-cluster1.md](002-install-istio-on-cluster1.md#openshift-platform-prerequisite-ovn-kubernetes-local-gateway-mode) for the background.
+
+Switch the Cluster Network Operator on cluster2:
+```bash
+oc --context $KUBECONTEXT_CLUSTER2 patch network.operator cluster --type=merge \
+  -p='{"spec":{"defaultNetwork":{"ovnKubernetesConfig":{"gatewayConfig":{"routingViaHost":true}}}}}'
+
+oc --context $KUBECONTEXT_CLUSTER2 rollout status -n openshift-ovn-kubernetes ds/ovnkube-node --timeout=300s
+
+oc --context $KUBECONTEXT_CLUSTER2 get network.operator cluster \
+  -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.routingViaHost}{"\n"}'
+# Expected output: true
+```
+
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY

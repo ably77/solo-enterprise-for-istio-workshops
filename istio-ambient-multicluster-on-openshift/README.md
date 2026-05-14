@@ -14,7 +14,6 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 
 - A valid Solo.io license key
 - `solo-istioctl` — see [000-tools.md](000-tools.md)
-- `meshctl` — see [000-tools.md](000-tools.md)
 - `helm`
 - `oc` (OpenShift CLI)
 - Two OpenShift clusters (4.16+)
@@ -39,7 +38,7 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 | [010-waypoints.md](010-waypoints.md) | L7 traffic management with waypoints |
 | [011-observability.md](011-observability.md) | Observability — inspecting Istio Ambient metrics |
 | [012-egress.md](012-egress.md) | Egress control with a waypoint |
-| [013-install-gme-control-plane.md](013-install-gme-control-plane.md) | Deploy Gloo Mesh Enterprise UI |
+| [013-install-solo-ui.md](013-install-solo-ui.md) | Install the Solo Management UI |
 | [014-cleanup.md](014-cleanup.md) | Teardown |
 
 ## Getting Started

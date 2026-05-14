@@ -39,31 +39,6 @@ Useful commands:
 
 > **Note:** In Phase 1 (OSS Istio), you can also use the community `istioctl` binary for validation. `solo-istioctl` is a superset and works with both OSS and Solo Istio installs.
 
-### MeshCTL for Debugging GME-Related Resources
-
-```bash
-curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.8.0 sh -
-export PATH=$HOME/.gloo-mesh/bin:$PATH
-```
-
-Useful commands:
-```bash
-# Check license key
-meshctl license check
-
-# Check environment before GME install
-meshctl precheck
-
-# Check status of Gloo Mesh Server / Agent
-meshctl check
-
-# Generate debug report
-meshctl debug report
-
-# Launch dashboard
-meshctl dashboard
-```
-
 ## Optional Tools
 
 ### K9s (CLI Kubernetes Control)
