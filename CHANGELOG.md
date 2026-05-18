@@ -1,5 +1,9 @@
 # Changelog
 
+0.1.6 - (5-18-26)
+---
+- Update Solo UI version to `0.4.1-2026-05-14-main-6fb46ef2`
+
 0.1.5 - (5-14-26)
 ---
 - Rewrite `013-install-gme-control-plane.md` → `013-install-solo-ui.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift` — replace legacy Gloo Platform 2.12.0 control-plane install with the latest Solo Management UI (mesh product view) plus a workload-cluster relay that tunnels via Istio Ambient `mesh.internal`
