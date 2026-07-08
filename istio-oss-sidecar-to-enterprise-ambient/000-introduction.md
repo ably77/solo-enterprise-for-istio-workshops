@@ -32,8 +32,8 @@ Now that workloads are in ambient mode, apply Istio AuthorizationPolicy to estab
 ## Validated on
 
 - Kubernetes ≥ 1.29
-- OSS Istio 1.26.8 (start)
-- Solo Istio 1.29.0-solo (target)
+- OSS Istio 1.29.5 (start)
+- Solo Istio 1.30.2-solo (target)
 - Gloo Platform 2.12.0
 
 ## License Key Details

@@ -15,7 +15,7 @@
 
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
-export OSS_ISTIO_VERSION=1.26.8
+export OSS_ISTIO_VERSION=1.29.5
 ```
 
 ## Add Community Istio Helm Repository

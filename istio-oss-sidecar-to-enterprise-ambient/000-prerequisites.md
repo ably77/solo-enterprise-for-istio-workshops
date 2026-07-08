@@ -15,18 +15,18 @@
 helm repo add istio https://istio-release.storage.googleapis.com/charts
 helm repo update
 
-helm pull istio/base --version 1.26.8
-helm pull istio/istiod --version 1.26.8
-helm pull istio/gateway --version 1.26.8
+helm pull istio/base --version 1.29.5
+helm pull istio/istiod --version 1.29.5
+helm pull istio/gateway --version 1.29.5
 ```
 
 ### Phase 2 — Solo Istio Helm Charts (OCI)
 
 ```bash
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/base --version 1.29.0-solo
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod --version 1.29.0-solo
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/cni --version 1.29.0-solo
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/base --version 1.30.2-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod --version 1.30.2-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/cni --version 1.30.2-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.30.2-solo
 ```
 
 ### Solo Gloo Platform Helm Chart
@@ -40,17 +40,17 @@ helm pull gloo-platform \
 ### Solo Istio Images
 
 ```bash
-docker pull us-docker.pkg.dev/soloio-img/istio/install-cni:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/pilot:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/proxyv2:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/ztunnel:1.29.0-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/install-cni:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/pilot:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/proxyv2:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/ztunnel:1.30.2-solo-distroless
 ```
 
 ### OSS Istio Images
 
 ```bash
-docker pull docker.io/istio/pilot:1.26.8
-docker pull docker.io/istio/proxyv2:1.26.8
+docker pull docker.io/istio/pilot:1.29.5
+docker pull docker.io/istio/proxyv2:1.29.5
 ```
 
 ### Bookinfo Images

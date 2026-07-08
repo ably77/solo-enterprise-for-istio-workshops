@@ -16,7 +16,7 @@
 
 ## Validated on
 - GKE (Kubernetes 1.29+)
-- Istio 1.29.0-solo
+- Istio 1.30.2-solo
 
 ## License Key Details
 Gloo Trial License Expires:

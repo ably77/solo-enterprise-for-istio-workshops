@@ -29,7 +29,7 @@ There are three distinct trace sources in this lab:
 
 ```bash
 export KUBECONTEXT_CLUSTER1=cluster1   # Replace with your actual kubectl context
-export ISTIO_VERSION=1.29.0
+export ISTIO_VERSION=1.30.2
 ```
 
 ## Step 1: Deploy Jaeger

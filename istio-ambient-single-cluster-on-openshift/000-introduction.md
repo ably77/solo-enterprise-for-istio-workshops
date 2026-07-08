@@ -16,7 +16,7 @@
 
 ## Validated on
 - OpenShift 4.16.0 - 4.19.30 (latest)
-- Istio 1.29.0-solo
+- Istio 1.30.2-solo
 
 ## License Key Details
 Gloo Trial License Expires:
