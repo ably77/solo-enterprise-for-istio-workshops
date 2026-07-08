@@ -176,7 +176,7 @@ Install Kubernetes Gateway CRDs if required
 **NOTE:** If you are using OpenShift >4.19 the Gateway API CRDs are already installed by default
 ```bash
 kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
-  { kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
+  { kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml; }
 ```
 
 Install istio-cni

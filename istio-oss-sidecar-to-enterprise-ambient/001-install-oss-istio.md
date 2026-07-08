@@ -35,7 +35,7 @@ helm search repo istio --versions | grep "$OSS_ISTIO_VERSION" | head -5
 Install Kubernetes Gateway API CRDs. This command is idempotent — safe to run on any cluster:
 ```bash
 kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
-  { kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
+  { kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml; }
 ```
 
 ## Create the `istio-system` Namespace

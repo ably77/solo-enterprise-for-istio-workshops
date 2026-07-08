@@ -52,7 +52,7 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 | OSS Istio (start) | 1.29.5 |
 | Solo Istio (target) | 1.30.2-solo |
 | Gloo Platform | 2.12.0 |
-| Gateway API | v1.4.0 |
+| Gateway API | v1.5.0 |
 | Kubernetes | ≥ 1.29 |
 
 ## Prerequisites
