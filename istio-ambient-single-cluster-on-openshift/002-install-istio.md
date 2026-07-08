@@ -60,7 +60,7 @@ oc --context $KUBECONTEXT_CLUSTER1 get network.operator cluster \
 Export your Solo.io license key and Istio version:
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
-export ISTIO_VERSION=1.29.0
+export ISTIO_VERSION=1.30.2
 ```
 
 ## Install Solo `istioctl`
@@ -206,7 +206,7 @@ Install Kubernetes Gateway API CRDs if not already present:
 > **Note:** If you are using OpenShift >= 4.19, the Gateway API CRDs are already installed by default.
 ```bash
 kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
-  kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
+  kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml
 ```
 
 Install `istio-cni`:

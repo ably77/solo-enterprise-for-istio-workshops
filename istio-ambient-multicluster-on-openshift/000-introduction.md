@@ -24,7 +24,7 @@
 
 ## Validated on
 - OpenShift 4.16.0 - 4.19.30 (latest)
-- Istio 1.29.0-solo
+- Istio 1.30.2-solo
 - Gloo Platform 2.12.0
 
 # High Level Architecture Diagram

@@ -12,23 +12,23 @@
 
 Solo Istio Helm Charts
 ```bash
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/base --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/base --version 1.30.2-solo
 
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod --version 1.30.2-solo
 
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/cni --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/cni --version 1.30.2-solo
 
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/gateway --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/gateway --version 1.30.2-solo
 
-helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.29.0-solo
+helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.30.2-solo
 ```
 
 **Istio Images:**
 ```bash
-docker pull us-docker.pkg.dev/soloio-img/istio/install-cni:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/pilot:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/proxyv2:1.29.0-solo-distroless
-docker pull us-docker.pkg.dev/soloio-img/istio/ztunnel:1.29.0-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/install-cni:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/pilot:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/proxyv2:1.30.2-solo-distroless
+docker pull us-docker.pkg.dev/soloio-img/istio/ztunnel:1.30.2-solo-distroless
 ```
 
 **Bookinfo Images:**

@@ -1,5 +1,11 @@
 # Changelog
 
+0.1.7 - (7-8-26)
+---
+- Bump Solo Istio from `1.29.0-solo` to `1.30.2-solo` across all workshops — update `ISTIO_VERSION` in every `000-tools.md` and install lab (including the stale `1.28.3` in the two multicluster `000-tools.md`), the `helm pull`/`docker pull` version tags in every `000-prerequisites.md`, and the version tables in the top-level and per-workshop READMEs/introductions.
+- Bump OSS Istio from `1.26.8` to `1.29.5`
+- Bump Gateway API CRDs from `v1.4.0` to `v1.5.0` (`standard-install.yaml`) across all install labs and the workshop version table
+
 0.1.6 - (5-18-26)
 ---
 - Update Solo UI version to `0.4.1-2026-05-14-main-6fb46ef2`

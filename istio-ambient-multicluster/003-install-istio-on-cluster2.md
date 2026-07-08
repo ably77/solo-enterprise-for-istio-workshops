@@ -21,7 +21,7 @@ export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 And export your Gloo Mesh license key variable and Istio version
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
-export ISTIO_VERSION=1.29.0
+export ISTIO_VERSION=1.30.2
 ```
 
 ## Create istio-system namespace and shared root trust secret in cluster2
@@ -44,7 +44,7 @@ Install Kubernetes Gateway CRDs if not already present
 **NOTE:** The command below is idempotent — it checks whether the CRDs exist before applying them and is safe to run on any Kubernetes distribution.
 ```bash
 kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER2 &> /dev/null || \
-  { kubectl --context $KUBECONTEXT_CLUSTER2 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml; }
+  { kubectl --context $KUBECONTEXT_CLUSTER2 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml; }
 ```
 
 > **GKE only:** Any pods with the `system-node-critical` priorityClassName can only be installed in namespaces that have a ResourceQuota defined. By default in GKE, only `kube-system` has a defined ResourceQuota for the node-critical class. Run the following to allow `istio-cni` to be deployed in the `istio-system` namespace:

@@ -9,8 +9,8 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 | | |
 |---|---|
 | **Platform** | Kubernetes (single cluster) |
-| **Starting point** | OSS Istio 1.26.8 (sidecar mode) |
-| **Target** | Solo Istio 1.29.0-solo (ambient mode) |
+| **Starting point** | OSS Istio 1.29.5 (sidecar mode) |
+| **Target** | Solo Istio 1.30.2-solo (ambient mode) |
 | **Gloo Platform** | 2.12.0 |
 
 ## Three-Phase Journey
@@ -49,10 +49,10 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 
 | Component | Version |
 |---|---|
-| OSS Istio (start) | 1.26.8 |
-| Solo Istio (target) | 1.29.0-solo |
+| OSS Istio (start) | 1.29.5 |
+| Solo Istio (target) | 1.30.2-solo |
 | Gloo Platform | 2.12.0 |
-| Gateway API | v1.4.0 |
+| Gateway API | v1.5.0 |
 | Kubernetes | ≥ 1.29 |
 
 ## Prerequisites

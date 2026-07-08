@@ -35,7 +35,7 @@ export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 Export your Solo.io license key and Istio version:
 ```bash
 export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
-export ISTIO_VERSION=1.29.0
+export ISTIO_VERSION=1.30.2
 ```
 
 ## Install Solo `istioctl`
@@ -179,7 +179,7 @@ helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 --install istio-base \
 Install Kubernetes Gateway API CRDs if not already present:
 ```bash
 kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTER1 &> /dev/null || \
-  kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
+  kubectl --context $KUBECONTEXT_CLUSTER1 apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml
 ```
 
 > **GKE only:** Pods with the `system-node-critical` priorityClassName can only be scheduled in namespaces that have a matching ResourceQuota. By default on GKE only `kube-system` has this quota. Run the following to allow `istio-cni` to be deployed in `istio-system`:

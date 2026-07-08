@@ -6,7 +6,7 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a sing
 
 | Component | Version |
 |---|---|
-| Istio (Solo) | 1.29.0-solo |
+| Istio (Solo) | 1.30.2-solo |
 | OpenShift | 4.16.0 – 4.19.30 (latest) |
 
 ## Prerequisites
