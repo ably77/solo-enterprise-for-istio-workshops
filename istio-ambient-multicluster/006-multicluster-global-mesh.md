@@ -59,8 +59,76 @@ kubectl get pods,svc -n istio-gateways --context $KUBECONTEXT_CLUSTER2
 > **Note:** The cloud load balancers for the e/w gateways may take a few minutes to be provisioned. If `EXTERNAL-IP` shows `<pending>`, wait and re-run the `kubectl get svc` command until addresses are assigned on both clusters before proceeding to link them.
 
 Link the e/w gateways
+
+You can link the clusters with either the Solo `istioctl` CLI or the `peering` Helm chart. Both produce the same result — pick one.
+
+#### Option A: solo-istioctl
 ```bash
 ./solo-istioctl multicluster link --contexts=$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2 --namespace istio-gateways
+```
+
+#### Option B: Helm (`peering` chart)
+
+Export the Istio version and each cluster's network name. These should match the `MESH_NAME_CLUSTER1`/`MESH_NAME_CLUSTER2` values used to install Istio in labs `002`/`003`
+```bash
+export ISTIO_VERSION=1.30.2
+export MESH_NAME_CLUSTER1=cluster1
+export MESH_NAME_CLUSTER2=cluster2
+```
+
+Get the e/w gateway address in each cluster
+```bash
+export CLUSTER1_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER1 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+export CLUSTER2_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER2 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+
+echo "Cluster1 e/w gateway: $CLUSTER1_EW_ADDRESS"
+echo "Cluster2 e/w gateway: $CLUSTER2_EW_ADDRESS"
+```
+
+Install a `peering-remote` Helm release in each cluster to represent the other cluster as a peer. This creates a Gateway resource using the `istio-remote` GatewayClass, pointing at the remote cluster's e/w gateway address
+```bash
+helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
+  --version $ISTIO_VERSION-solo \
+  --namespace istio-gateways \
+  --kube-context $KUBECONTEXT_CLUSTER1 \
+  -f - <<EOF
+remote:
+  create: true
+  items:
+    - name: istio-remote-peer-$MESH_NAME_CLUSTER2
+      cluster: $MESH_NAME_CLUSTER2
+      network: $MESH_NAME_CLUSTER2
+      # Change to "Hostname" if your e/w gateway address is a hostname (e.g. on AWS)
+      addressType: IPAddress
+      address: $CLUSTER2_EW_ADDRESS
+      preferredDataplaneServiceType: loadbalancer
+      trustDomain: $MESH_NAME_CLUSTER2.local
+      region: region1
+EOF
+
+helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
+  --version $ISTIO_VERSION-solo \
+  --namespace istio-gateways \
+  --kube-context $KUBECONTEXT_CLUSTER2 \
+  -f - <<EOF
+remote:
+  create: true
+  items:
+    - name: istio-remote-peer-$MESH_NAME_CLUSTER1
+      cluster: $MESH_NAME_CLUSTER1
+      network: $MESH_NAME_CLUSTER1
+      # Change to "Hostname" if your e/w gateway address is a hostname (e.g. on AWS)
+      addressType: IPAddress
+      address: $CLUSTER1_EW_ADDRESS
+      preferredDataplaneServiceType: loadbalancer
+      trustDomain: $MESH_NAME_CLUSTER1.local
+      region: region2
+EOF
+```
+
+Verify that the clusters were linked successfully
+```bash
+./solo-istioctl multicluster check --contexts="$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2"
 ```
 
 ## Configure a global service

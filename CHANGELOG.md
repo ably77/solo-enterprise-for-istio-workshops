@@ -1,5 +1,10 @@
 # Changelog
 
+0.1.8 - (7-23-26)
+---
+- Add Helm `peering` chart option for linking clusters (alongside `solo-istioctl multicluster link`) to `006-multicluster-global-mesh.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift`
+- Add bonus lab `014-add-a-third-cluster.md` to `istio-ambient-multicluster` — scale the two-cluster mesh to a third cluster, with full-mesh peering and three-way failover
+
 0.1.7 - (7-8-26)
 ---
 - Bump Solo Istio from `1.29.0-solo` to `1.30.2-solo` across all workshops — update `ISTIO_VERSION` in every `000-tools.md` and install lab (including the stale `1.28.3` in the two multicluster `000-tools.md`), the `helm pull`/`docker pull` version tags in every `000-prerequisites.md`, and the version tables in the top-level and per-workshop READMEs/introductions.
