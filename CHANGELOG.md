@@ -3,6 +3,7 @@
 0.1.8 - (7-22-26)
 ---
 - Add Helm `peering` chart option for linking clusters (alongside `solo-istioctl multicluster link`) to `006-multicluster-global-mesh.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift`
+- Add bonus lab `014-add-a-third-cluster.md` to `istio-ambient-multicluster` — scale the two-cluster mesh to a third cluster, with full-mesh peering and three-way failover
 
 0.1.7 - (7-8-26)
 ---

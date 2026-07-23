@@ -9,6 +9,12 @@ export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context
 export CLUSTERS=($KUBECONTEXT_CLUSTER1 $KUBECONTEXT_CLUSTER2)
 ```
 
+> **Completed the bonus lab `014-add-a-third-cluster.md`?** Also export `KUBECONTEXT_CLUSTER3` and add it to the array before running the loop below:
+> ```bash
+> export KUBECONTEXT_CLUSTER3=cluster3  # Replace with your actual kubectl context name
+> CLUSTERS+=($KUBECONTEXT_CLUSTER3)
+> ```
+
 ```bash
 for CONTEXT in "${CLUSTERS[@]}"; do
   echo "Cleaning up $CONTEXT..."
