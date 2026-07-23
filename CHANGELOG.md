@@ -1,5 +1,9 @@
 # Changelog
 
+0.1.9 - (7-23-26)
+---
+- Update `.gitignore`
+
 0.1.8 - (7-23-26)
 ---
 - Add Helm `peering` chart option for linking clusters (alongside `solo-istioctl multicluster link`) to `006-multicluster-global-mesh.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift`

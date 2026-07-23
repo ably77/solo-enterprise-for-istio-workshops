@@ -46,3 +46,6 @@ temp/
 
 # Generated secrets (never commit private keys)
 **/shared-root-trust-secret.yaml
+
+# Work-in-progress labs not ready for the public repo yet
+/advanced-scenarios/
