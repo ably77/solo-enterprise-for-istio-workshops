@@ -16,8 +16,8 @@
 ## Set environment variables
 
 ```bash
-export SOLO_MANAGEMENT_UI_VERSION=0.4.1-2026-05-14-main-6fb46ef2
-export SOLO_MANAGEMENT_UI_OCI_REPO=us-docker.pkg.dev/developers-369321/solo-enterprise-public-nonprod
+export SOLO_MANAGEMENT_UI_VERSION=0.5.1
+export SOLO_MANAGEMENT_UI_OCI_REPO=us-docker.pkg.dev/solo-public/solo-enterprise-helm
 
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
 ```
