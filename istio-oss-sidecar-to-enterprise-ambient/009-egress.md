@@ -122,7 +122,7 @@ Expected output — Envoy response headers confirm traffic passed through the wa
 ```
 server: istio-envoy
 x-envoy-upstream-service-time: 255
-x-envoy-decorator-operation: :80/*
+x-envoy-decorator-operation: jsonplaceholder.typicode.com:80/*
 ```
 
 In the waypoint log output you should see an access log entry for the request:

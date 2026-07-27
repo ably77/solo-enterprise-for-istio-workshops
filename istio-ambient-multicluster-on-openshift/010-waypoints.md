@@ -63,6 +63,35 @@ kubectl get pods -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 
 All inbound L7 traffic to services in `bookinfo-backends` now flows through this waypoint.
 
+## Update the Authorization Policies for the Waypoint
+
+> **Skip this section if you did not complete lab `009`.** It applies only when the access-control policies are in place.
+
+Adding the waypoint changed the traffic path. Before, `productpage` connected to the `details` pod and ztunnel checked the caller identity on that connection. Now `productpage` connects to the waypoint and the waypoint connects to the pod, so ztunnel sees `bookinfo-backends/sa/waypoint` as the peer. The lab `009` policies match on `bookinfo-frontends/sa/bookinfo-productpage`, which no longer appears on the pod's inbound connection, so every backend call is denied.
+
+Reload the page and you will see `Error fetching product details` and `Error fetching product reviews`.
+
+Split enforcement across the two hops instead:
+```bash
+kubectl apply -f auth-policy/waypoint-auth.yaml --context $KUBECONTEXT_CLUSTER1
+```
+
+The `selector` policies now allow only the waypoint to deliver traffic to a pod, which also stops a caller from bypassing the waypoint and reaching the pod directly. The `targetRefs` policies carry the identity rules and run on the waypoint, which terminates the caller's mTLS connection and can read the original caller identity.
+
+Resist the shortcut of adding `*/ns/bookinfo-backends/sa/waypoint` to the lab `009` policies. It restores the page, and it also makes every backend pod trust anything the waypoint forwards, so any workload in the mesh can reach any backend.
+
+Confirm the page renders again, then check that the rules still hold:
+```bash
+kubectl exec deploy/reviews-v2 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
+  curl -s -o /dev/null -w "reviews -> ratings: %{{http_code}}\n" http://ratings:9080/ratings/0
+
+kubectl exec deploy/ratings-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 -- \
+  curl -s -o /dev/null -w "ratings -> details: %{{http_code}}\n" http://details:9080/details/0
+```
+
+Expect `200` then `403`. Only `reviews` may call `ratings`, and nothing but `productpage` may call `details`. The waypoint returns a real HTTP status where ztunnel could only reset the connection.
+
+
 Enable access logging on the waypoint so requests are visible in the logs throughout this lab:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
@@ -445,6 +474,16 @@ To fully remove the waypoint if needed:
 ```bash
 kubectl label namespace bookinfo-backends istio.io/use-waypoint- --context $KUBECONTEXT_CLUSTER1
 kubectl delete gateway waypoint -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1
+```
+
+Removing the waypoint puts callers back on the direct path, so restore the lab `009` policies too. Skip this if you did not complete lab `009`:
+```bash
+kubectl delete authorizationpolicy details-waypoint-auth reviews-waypoint-auth ratings-waypoint-auth \
+  -n bookinfo-backends --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+
+kubectl apply -f auth-policy/details-auth.yaml --context $KUBECONTEXT_CLUSTER1
+kubectl apply -f auth-policy/reviews-auth.yaml --context $KUBECONTEXT_CLUSTER1
+kubectl apply -f auth-policy/ratings-auth.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Next Steps

@@ -116,7 +116,7 @@ kubectl exec deploy/reviews-v1 -n bookinfo-backends --context $KUBECONTEXT_CLUST
 ```http,nocopy
 server: istio-envoy
 x-envoy-upstream-service-time: 255
-x-envoy-decorator-operation: :80/*
+x-envoy-decorator-operation: jsonplaceholder.typicode.com:80/*
 ```
 
 The presence of Envoy headers in the response confirms that our traffic is being routed through the Waypoint as intended.
