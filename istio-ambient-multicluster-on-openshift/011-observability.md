@@ -30,7 +30,7 @@ ztunnel runs as a DaemonSet, one pod per node, and each pod reports metrics only
 APP_NODE=$(kubectl get pod -n bookinfo-frontends -l app=productpage \
   --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].spec.nodeName}')
 
-ZTUNNEL_POD=$(kubectl get pods -n istio-system -l app=ztunnel \
+ZTUNNEL_POD=$(kubectl get pods -n kube-system -l app=ztunnel \
   --field-selector spec.nodeName=$APP_NODE \
   --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
 
