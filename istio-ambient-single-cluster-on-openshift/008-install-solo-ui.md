@@ -21,6 +21,11 @@ export SOLO_MANAGEMENT_UI_VERSION=0.5.1
 export SOLO_MANAGEMENT_UI_OCI_REPO=us-docker.pkg.dev/solo-public/solo-enterprise-helm
 
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
+
+# Mesh name from lab 002. This must match global.multiCluster.clusterName, not the kubecontext. On KinD
+# the context is "kind-cluster1" while the mesh name is "cluster1". The UI correlates its telemetry
+# against the mesh name Istio reports in source_cluster and destination_cluster.
+export MESH_NAME_CLUSTER1=cluster1
 ```
 
 This lab assumes `SOLO_TRIAL_LICENSE_KEY` is already exported from earlier in the workshop.
@@ -58,7 +63,7 @@ helm upgrade --install management \
   --kube-context $KUBECONTEXT_CLUSTER1 \
   --no-hooks \
   -f -<<EOF
-cluster: "${KUBECONTEXT_CLUSTER1}"
+cluster: "${MESH_NAME_CLUSTER1}"
 # override (global fallback for all solo-owned images)
 #global:
 #  image:
@@ -79,7 +84,7 @@ products:
 licensing:
   licenseKey: "${SOLO_TRIAL_LICENSE_KEY}"
 # Reduce ClickHouse resource requests below chart defaults (2 CPU / 3Gi memory) so the pod schedules on small workshop clusters.
-# Remove this block for production deployments — the chart defaults are sized for real telemetry volume.
+# Remove this block for production deployments. The chart defaults are sized for real telemetry volume.
 clickhouse:
   resources:
     requests:
@@ -111,7 +116,7 @@ clickhouse:
 #    registry: docker.io
 #    repository: otel
 #    name: opentelemetry-collector-contrib
-#    tag: 0.150.1
+#    tag: 0.153.0
 EOF
 ```
 
