@@ -37,4 +37,10 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a sing
 
 ## Getting Started
 
-Follow the labs in order starting with [000-introduction.md](000-introduction.md).
+Every lab runs its commands relative to this directory (`kubectl apply -f bookinfo/...`, `./solo-istioctl`), so change into it first:
+
+```bash
+cd istio-ambient-single-cluster-on-openshift
+```
+
+Then work through the labs in order, starting with [000-introduction.md](000-introduction.md).

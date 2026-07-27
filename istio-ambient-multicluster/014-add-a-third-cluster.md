@@ -11,6 +11,18 @@
 - A third Kubernetes cluster (≥ 1.29), reachable via its own kubectl context
 - `shared-root-trust-secret.yaml`, generated in lab `002`, still present in this directory
 
+> **Run the cleanup in lab `007` or `008` before starting this lab.** Segments replace the
+> `*.mesh.internal` hostnames with the segment domain, and this lab routes to
+> `productpage.bookinfo-frontends.mesh.internal`. Verify that no segment label remains on `istio-system`
+> in either existing cluster:
+>
+> ```bash
+> kubectl get ns istio-system --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.metadata.labels.admin\.solo\.io/segment}{"\n"}'
+> kubectl get ns istio-system --context $KUBECONTEXT_CLUSTER2 -o jsonpath='{.metadata.labels.admin\.solo\.io/segment}{"\n"}'
+> ```
+>
+> Both should print an empty line.
+
 ## Set cluster contexts
 In this workshop, you can use your preferred cluster context. To set it, run the following command, replacing cluster3 with your desired context name
 ```bash
@@ -23,9 +35,10 @@ export MESH_NAME_CLUSTER3=cluster3    # Recommended to keep as cluster3 for POC
 
 > **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER3=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER3=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER3` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
 
-And re-export your Gloo Mesh license key variable and Istio version, if they are no longer set in your shell
+And re-export your Solo Trial License Key and Istio version, if they are no longer set in your shell
 ```bash
-export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
+export SOLO_TRIAL_LICENSE_KEY=<paste-your-key>
+[ -n "$SOLO_TRIAL_LICENSE_KEY" ] || echo "⚠️  SOLO_TRIAL_LICENSE_KEY is not set. Istio installs with an empty license and enterprise features, including multicluster peering, then fail."
 export ISTIO_VERSION=1.30.2
 ```
 
@@ -51,9 +64,9 @@ kubectl config get-contexts
 
 ## Create istio-system namespace and apply shared root trust secret on cluster3
 
-Both clusters must share the same root of trust so workloads can verify each other's mTLS certificates across cluster boundaries. `cluster3` reuses the exact same `shared-root-trust-secret.yaml` generated back in lab `002` — do not regenerate it.
+All three clusters must share the same root of trust so workloads can verify each other's mTLS certificates across cluster boundaries. `cluster3` reuses the exact same `shared-root-trust-secret.yaml` generated back in lab `002`. Do not regenerate it.
 ```bash
-kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER3
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER3 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER3 -f -
 kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER3
 ```
 
@@ -128,7 +141,7 @@ env:
   # Enables assigning multi-cluster services an IP address
   PILOT_ENABLE_IP_AUTOALLOCATE: "true"
   # Disable selecting workload entries for local service routing.
-  # Required for Gloo VirtualDestinaton functionality.
+  # Required for Solo Istio multicluster functionality.
   PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES: "false"
   # Required if you have distinct trust domains per-cluster
   PILOT_SKIP_VALIDATE_TRUST_DOMAIN: "true"
@@ -204,9 +217,7 @@ for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_C
 
 Update the reviews service to display which cluster it is coming from
 ```bash
-kubectl --context $KUBECONTEXT_CLUSTER3 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER3
-kubectl --context $KUBECONTEXT_CLUSTER3 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER3
-kubectl --context $KUBECONTEXT_CLUSTER3 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER3
+kubectl --context $KUBECONTEXT_CLUSTER3 -n bookinfo-backends set env deploy -l app=reviews CLUSTER_NAME=$MESH_NAME_CLUSTER3
 ```
 
 ## Enroll Apps to Ambient Mesh on cluster3
@@ -230,7 +241,7 @@ So far `cluster1` and `cluster2` are linked as a pair. Adding `cluster3` means e
 
 Create the `istio-gateways` namespace and expose an e/w gateway on cluster3
 ```bash
-kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER3
+kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER3 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER3 -f -
 
 ./solo-istioctl multicluster expose --namespace istio-gateways --context $KUBECONTEXT_CLUSTER3
 ```
@@ -270,10 +281,31 @@ export CLUSTER1_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --
 export CLUSTER2_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER2 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 export CLUSTER3_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER3 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 
-echo "Cluster1 e/w gateway: $CLUSTER1_EW_ADDRESS"
-echo "Cluster2 e/w gateway: $CLUSTER2_EW_ADDRESS"
-echo "Cluster3 e/w gateway: $CLUSTER3_EW_ADDRESS"
+# Peering needs to know whether each address is an IP or a DNS name
+export CLUSTER1_EW_ADDRESS_TYPE=$([[ $CLUSTER1_EW_ADDRESS =~ ^[0-9.]+$ ]] && echo IPAddress || echo Hostname)
+export CLUSTER2_EW_ADDRESS_TYPE=$([[ $CLUSTER2_EW_ADDRESS =~ ^[0-9.]+$ ]] && echo IPAddress || echo Hostname)
+export CLUSTER3_EW_ADDRESS_TYPE=$([[ $CLUSTER3_EW_ADDRESS =~ ^[0-9.]+$ ]] && echo IPAddress || echo Hostname)
+
+echo "Cluster1 e/w gateway: $CLUSTER1_EW_ADDRESS ($CLUSTER1_EW_ADDRESS_TYPE)"
+echo "Cluster2 e/w gateway: $CLUSTER2_EW_ADDRESS ($CLUSTER2_EW_ADDRESS_TYPE)"
+echo "Cluster3 e/w gateway: $CLUSTER3_EW_ADDRESS ($CLUSTER3_EW_ADDRESS_TYPE)"
 ```
+
+> **If you linked with Option A (`solo-istioctl multicluster link`) in lab `006`, delete those Gateways first.** `istioctl` created them without a Helm release behind them, so the `helm upgrade -i` commands below fail with:
+>
+> ```
+> Error: unable to continue with install: Gateway "istio-remote-peer-cluster2" in namespace
+> "istio-gateways" exists and cannot be imported into the current release: invalid ownership metadata
+> ```
+>
+> `--take-ownership` fails too, on a field-manager conflict over
+> `.metadata.labels.topology.kubernetes.io/region`. Delete the two Gateways, then run the Helm commands
+> below. Peering re-establishes as soon as Helm applies the release:
+>
+> ```bash
+> kubectl delete gateway istio-remote-peer-$MESH_NAME_CLUSTER2 -n istio-gateways --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+> kubectl delete gateway istio-remote-peer-$MESH_NAME_CLUSTER1 -n istio-gateways --context $KUBECONTEXT_CLUSTER2 --ignore-not-found
+> ```
 
 The `peering-remote` release's `remote.items` list is a full replacement on every `helm upgrade`, not additive — so each cluster's release must list *every other* cluster as a remote peer. Re-apply `cluster1` and `cluster2` with `cluster3` added to their items list, and install a new release on `cluster3` listing both `cluster1` and `cluster2`:
 ```bash
@@ -288,19 +320,19 @@ remote:
     - name: istio-remote-peer-$MESH_NAME_CLUSTER2
       cluster: $MESH_NAME_CLUSTER2
       network: $MESH_NAME_CLUSTER2
-      addressType: IPAddress
+      addressType: $CLUSTER2_EW_ADDRESS_TYPE
       address: $CLUSTER2_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER2.local
-      region: region1
+      region: region2
     - name: istio-remote-peer-$MESH_NAME_CLUSTER3
       cluster: $MESH_NAME_CLUSTER3
       network: $MESH_NAME_CLUSTER3
-      addressType: IPAddress
+      addressType: $CLUSTER3_EW_ADDRESS_TYPE
       address: $CLUSTER3_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER3.local
-      region: region1
+      region: region3
 EOF
 
 helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
@@ -314,19 +346,19 @@ remote:
     - name: istio-remote-peer-$MESH_NAME_CLUSTER1
       cluster: $MESH_NAME_CLUSTER1
       network: $MESH_NAME_CLUSTER1
-      addressType: IPAddress
+      addressType: $CLUSTER1_EW_ADDRESS_TYPE
       address: $CLUSTER1_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER1.local
-      region: region2
+      region: region1
     - name: istio-remote-peer-$MESH_NAME_CLUSTER3
       cluster: $MESH_NAME_CLUSTER3
       network: $MESH_NAME_CLUSTER3
-      addressType: IPAddress
+      addressType: $CLUSTER3_EW_ADDRESS_TYPE
       address: $CLUSTER3_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER3.local
-      region: region2
+      region: region3
 EOF
 
 helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
@@ -340,28 +372,34 @@ remote:
     - name: istio-remote-peer-$MESH_NAME_CLUSTER1
       cluster: $MESH_NAME_CLUSTER1
       network: $MESH_NAME_CLUSTER1
-      addressType: IPAddress
+      addressType: $CLUSTER1_EW_ADDRESS_TYPE
       address: $CLUSTER1_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER1.local
-      region: region3
+      region: region1
     - name: istio-remote-peer-$MESH_NAME_CLUSTER2
       cluster: $MESH_NAME_CLUSTER2
       network: $MESH_NAME_CLUSTER2
-      addressType: IPAddress
+      addressType: $CLUSTER2_EW_ADDRESS_TYPE
       address: $CLUSTER2_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER2.local
-      region: region3
+      region: region2
 EOF
 ```
 
-> **Change to "Hostname"** for any `addressType` above if that cluster's e/w gateway address is a hostname rather than an IP (e.g. on AWS).
 
 Verify all three clusters are linked
 ```bash
 ./solo-istioctl multicluster check --contexts="$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2,$KUBECONTEXT_CLUSTER3"
 ```
+
+> **If `cluster3`'s e/w gateway address is a hostname, wait for DNS to propagate before testing.** The same
+> caveat from lab `006` applies here, against a LoadBalancer you created a minute ago. An IP address peers
+> at once. A DNS name (an AWS ELB or NLB) takes 30–90 seconds to resolve from the other clusters' CoreDNS.
+> Until it resolves, istiod on `cluster1` and `cluster2` logs `disconnected, retrying` against `cluster3`,
+> no remote `WorkloadEntry` exists for it, and the three-way failover test below skips `cluster3`. Re-run
+> `multicluster check` until all three Peers Checks report connected.
 
 ## Add cluster3 to the global productpage service
 

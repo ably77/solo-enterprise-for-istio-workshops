@@ -1,0 +1,117 @@
+# Authorization policies for bookinfo-backends once the namespace uses a waypoint.
+#
+# Enrolling the namespace in a waypoint adds a hop: callers no longer connect to the
+# backend pod directly, they connect to the waypoint, and the waypoint connects to the
+# pod. ztunnel at the pod therefore sees the waypoint's identity as the peer, not the
+# original caller, so the selector-based policies from the access-control lab stop
+# matching and every backend call is denied.
+#
+# The fix is to split enforcement across the two hops:
+#   * Pod-level (selector)   -> only the waypoint may deliver. Also stops a caller from
+#                               bypassing the waypoint and hitting the pod directly.
+#   * Waypoint-level (targetRefs) -> the real identity rules. The waypoint terminates the
+#                               caller's mTLS connection, so it sees the original caller.
+#
+# Do not simply add the waypoint identity to the pod-level rules. That makes the pod trust
+# anything the waypoint forwards, which lets any workload in the mesh reach any backend.
+
+# --- Pod-level: only the waypoint may deliver traffic to these pods ---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: details-auth
+  namespace: bookinfo-backends
+spec:
+  selector:
+    matchLabels:
+      app: details
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-backends/sa/waypoint"
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: reviews-auth
+  namespace: bookinfo-backends
+spec:
+  selector:
+    matchLabels:
+      app: reviews
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-backends/sa/waypoint"
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ratings-auth
+  namespace: bookinfo-backends
+spec:
+  selector:
+    matchLabels:
+      app: ratings
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-backends/sa/waypoint"
+---
+# --- Waypoint-level: the identity rules, enforced where the original caller is visible ---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: details-waypoint-auth
+  namespace: bookinfo-backends
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: details
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-frontends/sa/bookinfo-productpage"
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: reviews-waypoint-auth
+  namespace: bookinfo-backends
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: reviews
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-frontends/sa/bookinfo-productpage"
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ratings-waypoint-auth
+  namespace: bookinfo-backends
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: ratings
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "*/ns/bookinfo-backends/sa/bookinfo-reviews"

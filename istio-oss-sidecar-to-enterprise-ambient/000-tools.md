@@ -67,5 +67,6 @@ echo "GET http://yourhostname/path" | vegeta attack -duration=600s -rate=1 | veg
 
 ## Troubleshooting Resources
 
-- GME / Ambient debug: https://docs.solo.io/gloo-mesh/latest/troubleshooting/debug/
+- Solo Istio Ambient debug: https://docs.solo.io/istio/1.31.x/troubleshooting/service-mesh/ambient/
+- Solo Istio (general) debug: https://docs.solo.io/istio/1.31.x/troubleshooting/service-mesh/istio/
 - OSS Ambient debugging: https://github.com/istio/istio/wiki/Troubleshooting-Istio-Ambient

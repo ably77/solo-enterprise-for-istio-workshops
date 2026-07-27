@@ -1,5 +1,36 @@
 # Changelog
 
+0.1.9 - (7-27-26)
+---
+- Update `.gitignore`
+- Update Solo UI to `0.5.1`, and replace the remaining Gloo Platform 2.12.0 references across both multicluster workshops and `istio-oss-sidecar-to-enterprise-ambient`
+- Add a `clickhouse.resources` override (500m CPU / 1Gi) to the two Kubernetes Solo UI labs, since the chart defaults of 2 CPU and 3Gi leave the pod `Pending` on workshop-sized clusters
+- Warn that a Segment label on `istio-system` breaks the Solo UI relay, with a blocking prerequisite in `013` and `014` and a clearer cleanup heading in `007`
+- Select the ztunnel pod on the same node as `productpage` across all five observability labs, because each ztunnel reports only its own node's traffic and the previous `items[0]` pick often returned nothing
+- Read ztunnel metrics from `kube-system` in `istio-ambient-multicluster-on-openshift/011-observability.md`, which is where that workshop installs ztunnel
+- Rename the license prose to "Solo Trial License Key" across all five workshops
+- Replace the no-op `export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY` with a placeholder and a guard across all 9 install labs, since an empty license installs cleanly and only fails later at peering
+- Correct 12 inverted `region` values in the `peering` configs, which named the local cluster instead of the remote peer and left locality-priority routing disengaged
+- Derive `addressType` in the peering values from the east-west gateway address instead of hardcoding `IPAddress`
+- Warn that lab `006`'s two linking options are not interchangeable, because Option A creates the remote-peer Gateways without Helm ownership and lab `014`'s `peering-remote` upgrade then fails with `invalid ownership metadata`
+- Use `MESH_NAME_CLUSTER*` rather than `KUBECONTEXT_CLUSTER*` for the `cluster` value in all four Solo UI labs, so the UI's telemetry correlates with the `source_cluster` Istio reports
+- Note that the relay logs an IPv6 connect failure every few seconds on IPv4-only clusters, and give a ClickHouse query that confirms telemetry still arrives over IPv4
+- Fix the access-control policies breaking once a waypoint is enrolled, by adding `auth-policy/waypoint-auth.yaml` to the three affected workshops, which keeps the pod-level rule for the waypoint and moves the identity rules to `targetRefs` policies where the original caller stays visible
+- Repoint the dead `docs.solo.io/gloo-mesh` troubleshooting links in `000-tools.md` to the Solo Istio 1.31.x docs, and correct the stale namespace and context variables in both multicluster copies
+- Rewrite `015-cleanup.md` to remove everything the workshop creates, guarding the custom-resource deletes behind a `kubectl get crd` check because `--ignore-not-found` still errors on a missing CRD
+- Give `istio-ambient-multicluster-on-openshift/014-cleanup.md` the same coverage as its Kubernetes twin, including the `anyuid` SCC grants that outlive the namespaces
+- Delete the ingress route and gateway before the namespaces in both single-cluster cleanup labs, where the route delete previously always found nothing
+- Delete the orphaned `istio-ambient-multicluster-on-openshift/scc/` tree
+- Stamp the cluster name into `reviews` in `istio-oss-sidecar-to-enterprise-ambient/002`, the one lab that deployed the backends without a following `set env`
+- Stop hardcoding `CLUSTER_NAME: cluster1` in `bookinfo/bookinfo-backends.yaml`, so no cluster claims to be `cluster1` before lab `001` patches it
+- Collapse the three sequential `set env deploy/reviews-v{1,2,3}` calls into one `set env deploy -l app=reviews`, cutting three rollouts to one per cluster
+- Add the missing lab `005` dependency and a `No LoadBalancer?` fallback to `010-waypoints.md`
+- Correct the `012-egress.md` ServiceEntry prose, which named a label the manifest never sets, and drop the empty `annotations:` key
+- Correct the expected `x-envoy-decorator-operation` value in all five egress labs
+- Make `kubectl create namespace` idempotent at 12 sites across all five workshops
+- Normalize HTTPRoute from `gateway.networking.k8s.io/v1beta1` to `v1` at 6 sites
+- Tell the reader to `cd` into the workshop directory, which every relative `kubectl apply -f bookinfo/...` depends on
+
 0.1.8 - (7-23-26)
 ---
 - Add Helm `peering` chart option for linking clusters (alongside `solo-istioctl multicluster link`) to `006-multicluster-global-mesh.md` in `istio-ambient-multicluster` and `istio-ambient-multicluster-on-openshift`

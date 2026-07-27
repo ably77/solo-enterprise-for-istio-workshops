@@ -257,7 +257,7 @@ kubectl set env deploy/productpage-v1 -n bookinfo-frontends \
 Restore the `bookinfo-route` to use the `mesh.internal` productpage hostname:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route

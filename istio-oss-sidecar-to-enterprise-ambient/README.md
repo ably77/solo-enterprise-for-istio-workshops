@@ -11,7 +11,6 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 | **Platform** | Kubernetes (single cluster) |
 | **Starting point** | OSS Istio 1.29.5 (sidecar mode) |
 | **Target** | Solo Istio 1.30.2-solo (ambient mode) |
-| **Gloo Platform** | 2.12.0 |
 
 ## Three-Phase Journey
 
@@ -51,7 +50,6 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 |---|---|
 | OSS Istio (start) | 1.29.5 |
 | Solo Istio (target) | 1.30.2-solo |
-| Gloo Platform | 2.12.0 |
 | Gateway API | v1.5.0 |
 | Kubernetes | ≥ 1.29 |
 
@@ -66,4 +64,8 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
 
 1. Clone this repo
 2. Obtain a Solo.io trial license key
-3. Follow the labs in order starting with `000-introduction.md`
+3. Change into this directory. Every lab runs its commands relative to it (`kubectl apply -f bookinfo/...`, `./solo-istioctl`):
+   ```bash
+   cd istio-oss-sidecar-to-enterprise-ambient
+   ```
+4. Follow the labs in order starting with `000-introduction.md`

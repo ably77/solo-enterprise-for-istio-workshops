@@ -1,5 +1,5 @@
 # Prerequisites:
-1. A valid license key
+1. A valid Solo.io license key, exported as `$SOLO_TRIAL_LICENSE_KEY`
 2. solo-istioctl installed ([Solo istioCTL installation](000-tools.md#solos-1250-istioctl-binary))
 3. helm installed
 4. A kubernetes version >1.29
@@ -23,11 +23,11 @@ helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/gateway --version 1.30.2
 helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.30.2-solo
 ```
 
-Solo Gloo Mesh Enterprise Helm Chart
+Solo Management UI Helm Charts (used in lab `013`)
 ```bash
-helm pull gloo-platform \
-  --version 2.12.0 \
-  --repo https://storage.googleapis.com/gloo-platform/helm-charts
+helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/management --version 0.5.1
+
+helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/relay --version 0.5.1
 ```
 
 **Istio Images:** 
@@ -47,16 +47,24 @@ docker pull docker.io/istio/examples-bookinfo-reviews-v2:1.20.2
 docker pull docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
 ```
 
-**GME Images (Optional, we can upload later for phase 2 of POC)**
+**Solo Management UI Images (Optional, we can upload later for phase 2 of POC)**
+
+Management cluster (`management` chart, lab `013`):
 ```bash
-docker pull gcr.io/gloo-mesh/gloo-mesh-mgmt-server:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-agent:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-apiserver:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-ui:2.12.0
-docker pull gcr.io/gloo-mesh/gloo-mesh-envoy:2.12.0
-docker pull docker.io/redis:7.4.7-alpine
-docker pull gcr.io/gloo-mesh/prometheus:v3.9.1
-docker pull quay.io/prometheus-operator/prometheus-config-reloader:v0.89.0
-docker pull gcr.io/gloo-mesh/gloo-otel-collector:0.2.7
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-frontend:0.5.1
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-backend:0.5.1
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-server:0.5.1
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-autoauth:v0.2.2
+docker pull clickhouse/clickhouse-server:26.3.17-alpine
+docker pull docker.io/otel/opentelemetry-collector-contrib:0.153.0
 ```
+
+Workload clusters (`relay` chart, lab `013`):
+```bash
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-client:0.5.1
+docker pull docker.io/otel/opentelemetry-collector-contrib:0.153.0
+```
+
+> **Note:** Lab `013` includes commented-out `image` override blocks in both Helm values files. Uncomment
+> them and point them at your private registry when you run from mirrored images.
 

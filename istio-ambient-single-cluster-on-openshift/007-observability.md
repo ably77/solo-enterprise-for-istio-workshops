@@ -27,11 +27,16 @@ Each Istio component exposes a Prometheus-format `/metrics` endpoint. `kubectl p
 
 ## ztunnel Metrics (L4 + L7)
 
-ztunnel is a DaemonSet — one pod per node. Get any ztunnel pod name:
+ztunnel runs as a DaemonSet, one pod per node, and each pod reports metrics only for traffic it handled on its own node. Select the ztunnel on the same node as `productpage`, the workload that generates the traffic below. Any other ztunnel returns an empty result:
 ```bash
+APP_NODE=$(kubectl get pod -n bookinfo-frontends -l app=productpage \
+  --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].spec.nodeName}')
+
 ZTUNNEL_POD=$(kubectl get pods -n kube-system -l app=ztunnel \
+  --field-selector spec.nodeName=$APP_NODE \
   --context $KUBECONTEXT_CLUSTER1 -o jsonpath='{.items[0].metadata.name}')
-echo $ZTUNNEL_POD
+
+echo "$ZTUNNEL_POD (node: $APP_NODE)"
 ```
 
 Port-forward to the ztunnel pod's metrics port:

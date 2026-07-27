@@ -150,7 +150,7 @@ kubectl set env deploy/productpage-v1 -n bookinfo-frontends \
 Update the ingress `HTTPRoute` on `cluster1` to route to `productpage` via the segment-scoped hostname:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route
@@ -181,6 +181,8 @@ kubectl rollout status deploy/productpage-v1 -n bookinfo-frontends --context $KU
 
 Wait for segment-scoped ServiceEntries to be generated, then confirm each cluster now has its own domain:
 ```bash
+sleep 5
+
 echo "ServiceEntries on $KUBECONTEXT_CLUSTER1 (should show mesh.acme):"
 kubectl get serviceentry -n istio-system --context $KUBECONTEXT_CLUSTER1 | grep -E "details|reviews|ratings"
 
@@ -246,8 +248,14 @@ In the diagram below, ACME's two clusters share a segment and can fail over betw
 
 ![](../images/segments-failover-namespace-sameness-isolation-2.png)
 
-## Cleanup (Skip this step if evaluating global-aliases next)
-Follow the cleanup steps below to remove segments and return to a single flat global mesh. You can skip this cleanup step if moving forward to evaluate global aliases using segments.
+## Cleanup
+
+Follow the cleanup steps below to remove segments and return to a single flat global mesh.
+
+**Skip this section only if you are going straight to lab `008` (global aliases), which needs the Segment
+CRs in place and runs the same cleanup at its end.** Otherwise run it now. While a segment label sits on
+`istio-system`, Istio replaces the `*.mesh.internal` hostnames with the segment domain, breaking lab `013`
+(the Solo UI relay) and lab `014` (three-way routing).
 
 Restore `productpage` to use the original `DETAILS_HOSTNAME`:
 ```bash
@@ -259,7 +267,7 @@ kubectl set env deploy/productpage-v1 -n bookinfo-frontends \
 Restore the `bookinfo-route` to use the `mesh.internal` productpage hostname:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route

@@ -9,17 +9,17 @@ helm uninstall management -n kagent --kube-context $KUBECONTEXT_CLUSTER1
 kubectl delete namespace kagent --context $KUBECONTEXT_CLUSTER1
 ```
 
-## Bookinfo application
-
-```bash
-kubectl delete namespace bookinfo-frontends bookinfo-backends --context $KUBECONTEXT_CLUSTER1
-```
-
 ## Ingress gateway and routes
 
 ```bash
 kubectl delete httproute bookinfo-route -n bookinfo-frontends --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 kubectl delete gateway ingress -n istio-system --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+```
+
+## Bookinfo application
+
+```bash
+kubectl delete namespace bookinfo-frontends bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
 ## Uninstall Istio
