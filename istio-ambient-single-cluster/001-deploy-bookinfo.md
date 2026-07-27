@@ -43,9 +43,7 @@ done
 
 Stamp the reviews deployments with the cluster name. In the multicluster workshop this label makes it visible in the productpage UI which cluster served each request:
 ```bash
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER1
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER1
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER1
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy -l app=reviews CLUSTER_NAME=$MESH_NAME_CLUSTER1
 ```
 
 Port-forward to productpage to validate the application is working:

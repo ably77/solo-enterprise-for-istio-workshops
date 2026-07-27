@@ -12,6 +12,7 @@
 ## Prerequisites
 - This lab assumes you have completed setup from labs `000-004`
 - The `bookinfo-backends` namespace must be enrolled in the mesh.
+- Setup from lab `005` is optional but recommended. The traffic-splitting and fault-injection steps read the productpage through `svc/ingress-istio`, which lab `005` creates. Without it, use the port-forward fallback noted at that step.
 
 Ensure the following environment variables are set:
 ```bash
@@ -170,6 +171,11 @@ Navigate to the productpage and confirm all requests show no stars (v1):
 SVC=$(kubectl -n istio-system get svc ingress-istio --context $KUBECONTEXT_CLUSTER1 --no-headers | awk '{ print $4 }')
 echo http://$SVC/productpage
 ```
+
+> **No LoadBalancer?** If you skipped lab `005` or are using port-forward, set `SVC=localhost:9080` instead and keep a port-forward to `svc/productpage` running in a separate terminal:
+> ```bash
+> kubectl port-forward svc/productpage -n bookinfo-frontends 9080:9080 --context $KUBECONTEXT_CLUSTER1
+> ```
 
 ### How the waypoint enables canary shifting
 

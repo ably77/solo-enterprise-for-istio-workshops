@@ -42,9 +42,10 @@ oc --context $KUBECONTEXT_CLUSTER1 get network.operator cluster \
 
 > **Reference:** [Istio Ambient — OpenShift platform prerequisites](https://istio.io/latest/docs/ambient/install/platform-prerequisites/)
 
-And export your Gloo Mesh license key variable and Istio version
+And export your Solo Trial License Key and Istio version
 ```bash
-export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
+export SOLO_TRIAL_LICENSE_KEY=<paste-your-key>
+[ -n "$SOLO_TRIAL_LICENSE_KEY" ] || echo "⚠️  SOLO_TRIAL_LICENSE_KEY is not set. Istio installs with an empty license and enterprise features, including multicluster peering, then fail."
 export ISTIO_VERSION=1.30.2
 ```
 
@@ -158,7 +159,7 @@ echo "Generated shared-root-trust-secret.yaml"
 
 ## Create istio-system namespace and apply shared root trust secret in cluster1
 ```bash
-kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER1 -f -
 kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 
@@ -225,7 +226,7 @@ env:
   # Enables assigning multi-cluster services an IP address
   PILOT_ENABLE_IP_AUTOALLOCATE: "true"
   # Disable selecting workload entries for local service routing.
-  # Required for Gloo VirtualDestinaton functionality.
+  # Required for Solo Istio multicluster functionality.
   PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES: "false"
   # Required if you have distinct trust domains per-cluster
   PILOT_SKIP_VALIDATE_TRUST_DOMAIN: "true"

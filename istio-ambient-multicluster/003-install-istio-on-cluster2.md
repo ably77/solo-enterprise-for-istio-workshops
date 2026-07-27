@@ -18,15 +18,16 @@ export MESH_NAME_CLUSTER2=cluster2    # Recommended to keep as cluster2 for POC
 
 > **KinD users:** KinD automatically prefixes kubecontext names with `kind-`. You can set `KUBECONTEXT_CLUSTER2=kind-<cluster-name>` but keep `MESH_NAME_CLUSTER2=<cluster-name>` (without the `kind-` prefix). The `MESH_NAME_CLUSTER2` value is the Istio network name — it must match the `topology.istio.io/network` label on the `istio-system` namespace and the ztunnel `NETWORK` env var. Mismatching these causes ztunnel to fail VIP lookups, silently bypassing waypoints.
 
-And export your Gloo Mesh license key variable and Istio version
+And export your Solo Trial License Key and Istio version
 ```bash
-export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
+export SOLO_TRIAL_LICENSE_KEY=<paste-your-key>
+[ -n "$SOLO_TRIAL_LICENSE_KEY" ] || echo "⚠️  SOLO_TRIAL_LICENSE_KEY is not set. Istio installs with an empty license and enterprise features, including multicluster peering, then fail."
 export ISTIO_VERSION=1.30.2
 ```
 
 ## Create istio-system namespace and shared root trust secret in cluster2
 ```bash
-kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER2
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER2 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER2 -f -
 kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER2
 ```
 
@@ -101,7 +102,7 @@ env:
   # Enables assigning multi-cluster services an IP address
   PILOT_ENABLE_IP_AUTOALLOCATE: "true"
   # Disable selecting workload entries for local service routing.
-  # Required for Gloo VirtualDestinaton functionality.
+  # Required for Solo Istio multicluster functionality.
   PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES: "false"
   # Required if you have distinct trust domains per-cluster
   PILOT_SKIP_VALIDATE_TRUST_DOMAIN: "true"

@@ -22,12 +22,12 @@ Linking clusters enables cross-cluster service discovery and enables traffic to 
 If you have multiple kubeconfig files you need to join into one, you can run `KUBECONFIG=kubeconfig1.yaml:kubeconfig2.yaml:kubeconfig3.yaml kubectl config view --flatten` to get a merge file.
 
 ## Link Clusters
-Now that we have set up two clusters with Istio Ambient mode and our sample Bookinfo application, next we are going to explore Gloo Mesh Enterprise multicluster features by linking our clusters together 
+Now that we have set up two clusters with Istio Ambient mode and our sample Bookinfo application, next we are going to explore Solo Istio Enterprise multicluster features by linking our clusters together 
 
 Create istio-gateways namespace
 ```bash
-kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER1
-kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER2
+kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER1 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER1 -f -
+kubectl create ns istio-gateways --context $KUBECONTEXT_CLUSTER2 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER2 -f -
 ```
 
 Use solo `istioctl` to create e/w peering gateways
@@ -60,7 +60,7 @@ kubectl get pods,svc -n istio-gateways --context $KUBECONTEXT_CLUSTER2
 
 Link the e/w gateways
 
-You can link the clusters with either the Solo `istioctl` CLI or the `peering` Helm chart. Both produce the same result — pick one.
+You can link the clusters with either the Solo `istioctl` CLI or the `peering` Helm chart. Both produce the same peering, but you cannot switch later. Option A creates the remote-peer Gateways with no Helm release behind them, so a later `helm upgrade` of a `peering-remote` release fails with `invalid ownership metadata` until you delete those Gateways. Pick **Option B** if you plan to run the bonus lab `014-add-a-third-cluster.md`, which extends peering through Helm.
 
 #### Option A: solo-istioctl
 ```bash
@@ -81,11 +81,17 @@ Get the e/w gateway address in each cluster
 export CLUSTER1_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER1 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 export CLUSTER2_EW_ADDRESS=$(kubectl get svc -n istio-gateways istio-eastwest --context $KUBECONTEXT_CLUSTER2 -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 
-echo "Cluster1 e/w gateway: $CLUSTER1_EW_ADDRESS"
-echo "Cluster2 e/w gateway: $CLUSTER2_EW_ADDRESS"
+# Peering needs to know whether each address is an IP or a DNS name
+export CLUSTER1_EW_ADDRESS_TYPE=$([[ $CLUSTER1_EW_ADDRESS =~ ^[0-9.]+$ ]] && echo IPAddress || echo Hostname)
+export CLUSTER2_EW_ADDRESS_TYPE=$([[ $CLUSTER2_EW_ADDRESS =~ ^[0-9.]+$ ]] && echo IPAddress || echo Hostname)
+
+echo "Cluster1 e/w gateway: $CLUSTER1_EW_ADDRESS ($CLUSTER1_EW_ADDRESS_TYPE)"
+echo "Cluster2 e/w gateway: $CLUSTER2_EW_ADDRESS ($CLUSTER2_EW_ADDRESS_TYPE)"
 ```
 
 Install a `peering-remote` Helm release in each cluster to represent the other cluster as a peer. This creates a Gateway resource using the `istio-remote` GatewayClass, pointing at the remote cluster's e/w gateway address
+
+> **Each field under `remote.items[]` describes the remote peer.** That includes `region`. Istio copies it to the `topology.kubernetes.io/region` label on the generated Gateway and uses it to assign locality to that peer's endpoints.
 ```bash
 helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
   --version $ISTIO_VERSION-solo \
@@ -98,12 +104,11 @@ remote:
     - name: istio-remote-peer-$MESH_NAME_CLUSTER2
       cluster: $MESH_NAME_CLUSTER2
       network: $MESH_NAME_CLUSTER2
-      # Change to "Hostname" if your e/w gateway address is a hostname (e.g. on AWS)
-      addressType: IPAddress
+      addressType: $CLUSTER2_EW_ADDRESS_TYPE
       address: $CLUSTER2_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER2.local
-      region: region1
+      region: region2
 EOF
 
 helm upgrade -i peering-remote oci://us-docker.pkg.dev/soloio-img/istio-helm/peering \
@@ -117,12 +122,11 @@ remote:
     - name: istio-remote-peer-$MESH_NAME_CLUSTER1
       cluster: $MESH_NAME_CLUSTER1
       network: $MESH_NAME_CLUSTER1
-      # Change to "Hostname" if your e/w gateway address is a hostname (e.g. on AWS)
-      addressType: IPAddress
+      addressType: $CLUSTER1_EW_ADDRESS_TYPE
       address: $CLUSTER1_EW_ADDRESS
       preferredDataplaneServiceType: loadbalancer
       trustDomain: $MESH_NAME_CLUSTER1.local
-      region: region2
+      region: region1
 EOF
 ```
 
@@ -130,6 +134,19 @@ Verify that the clusters were linked successfully
 ```bash
 ./solo-istioctl multicluster check --contexts="$KUBECONTEXT_CLUSTER1,$KUBECONTEXT_CLUSTER2"
 ```
+
+> **If your e/w gateway address is a hostname, wait for DNS to propagate before testing.** If
+> `echo $CLUSTER1_EW_ADDRESS` printed a DNS name instead, which is what AWS gives you for an ELB or NLB,
+> that name takes 30–90 seconds to resolve from the cluster's CoreDNS. Until it resolves, istiod logs
+> `dial tcp: lookup ...elb.amazonaws.com on <coredns>:53: no such host` and `disconnected, retrying`
+> against the peer, Istio creates no remote `WorkloadEntry`, and the failover test below returns 503s.
+> Tail istiod until the `disconnected, retrying` lines stop:
+>
+> ```bash
+> kubectl logs -n istio-system -l app=istiod --context $KUBECONTEXT_CLUSTER1 -f --tail=20 | grep -E "disconnected|FederatedService|WorkloadEntry"
+> ```
+>
+> Or re-run `multicluster check` until the Peers Check reports connected.
 
 ## Configure a global service
 
@@ -159,7 +176,7 @@ done
 Reconfigure the bookinfo application to use the global service hostname `*.<namespace>.mesh.internal`
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route

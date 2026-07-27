@@ -34,7 +34,8 @@ export MESH_NAME_CLUSTER1=cluster1    # Recommended to keep as cluster1 for POC
 
 Export your Solo.io license key and Istio version:
 ```bash
-export SOLO_TRIAL_LICENSE_KEY=$SOLO_TRIAL_LICENSE_KEY
+export SOLO_TRIAL_LICENSE_KEY=<paste-your-key>
+[ -n "$SOLO_TRIAL_LICENSE_KEY" ] || echo "⚠️  SOLO_TRIAL_LICENSE_KEY is not set. Istio installs with an empty license and enterprise features, including multicluster peering, then fail."
 export ISTIO_VERSION=1.30.2
 ```
 
@@ -156,7 +157,7 @@ echo "Generated shared-root-trust-secret.yaml"
 ## Create the `istio-system` namespace and apply the CA secret
 
 ```bash
-kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER1 -f -
 kubectl apply -f shared-root-trust-secret.yaml --context $KUBECONTEXT_CLUSTER1
 ```
 

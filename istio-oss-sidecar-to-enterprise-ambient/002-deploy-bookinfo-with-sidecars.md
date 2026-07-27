@@ -57,6 +57,11 @@ for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_C
 done
 ```
 
+Stamp the cluster name into the `reviews` responses so the product page shows where each review came from:
+```bash
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy -l app=reviews CLUSTER_NAME=$KUBECONTEXT_CLUSTER1
+```
+
 ## Validate Sidecar Injection
 
 **Key observation:** Pods should show `2/2 READY` — that is the app container plus the injected Envoy sidecar proxy.

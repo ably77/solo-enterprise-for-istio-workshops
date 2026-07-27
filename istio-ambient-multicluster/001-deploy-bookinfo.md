@@ -45,9 +45,7 @@ for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_C
 
 Update the reviews service to display which cluster it is coming from
 ```bash
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER1
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER1
-kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER1
+kubectl --context $KUBECONTEXT_CLUSTER1 -n bookinfo-backends set env deploy -l app=reviews CLUSTER_NAME=$MESH_NAME_CLUSTER1
 ```
 
 Port forward to productpage in bookinfo-frontends namespace to validate application is working
@@ -83,9 +81,7 @@ for deploy in $(kubectl get deploy -n bookinfo-backends --context $KUBECONTEXT_C
 
 Update the reviews service to display which cluster it is coming from
 ```bash
-kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v1 CLUSTER_NAME=$MESH_NAME_CLUSTER2
-kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v2 CLUSTER_NAME=$MESH_NAME_CLUSTER2
-kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy/reviews-v3 CLUSTER_NAME=$MESH_NAME_CLUSTER2
+kubectl --context $KUBECONTEXT_CLUSTER2 -n bookinfo-backends set env deploy -l app=reviews CLUSTER_NAME=$MESH_NAME_CLUSTER2
 ```
 
 Port forward to productpage in bookinfo-frontends namespace to validate application is working

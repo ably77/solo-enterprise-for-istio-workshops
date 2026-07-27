@@ -41,7 +41,7 @@ kubectl get crd gateways.gateway.networking.k8s.io --context $KUBECONTEXT_CLUSTE
 ## Create the `istio-system` Namespace
 
 ```bash
-kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1
+kubectl create namespace istio-system --context $KUBECONTEXT_CLUSTER1 --dry-run=client -o yaml | kubectl apply --context $KUBECONTEXT_CLUSTER1 -f -
 ```
 
 ## Install `istio-base`

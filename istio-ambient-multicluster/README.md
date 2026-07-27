@@ -7,7 +7,7 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 | Component | Version |
 |---|---|
 | Istio (Solo) | 1.30.2-solo |
-| Gloo Platform | 2.12.0 |
+| Solo Management UI | 0.5.1 |
 | Kubernetes | ≥ 1.29 |
 
 ## Prerequisites
@@ -44,4 +44,10 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 
 ## Getting Started
 
-Follow the labs in order starting with [000-introduction.md](000-introduction.md).
+Every lab runs its commands relative to this directory (`kubectl apply -f bookinfo/...`, `./solo-istioctl`), so change into it first:
+
+```bash
+cd istio-ambient-multicluster
+```
+
+Then work through the labs in order, starting with [000-introduction.md](000-introduction.md).

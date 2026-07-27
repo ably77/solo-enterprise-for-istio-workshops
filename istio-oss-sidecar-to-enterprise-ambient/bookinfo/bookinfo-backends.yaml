@@ -157,7 +157,7 @@ spec:
         - name: LOG_DIR
           value: /tmp/logs
         - name: CLUSTER_NAME
-          value: cluster1
+          value: unset
         image: docker.io/istio/examples-bookinfo-reviews-v1:1.20.2
         imagePullPolicy: IfNotPresent
         name: reviews
@@ -202,7 +202,7 @@ spec:
         - name: LOG_DIR
           value: /tmp/logs
         - name: CLUSTER_NAME
-          value: cluster1
+          value: unset
         image: docker.io/istio/examples-bookinfo-reviews-v2:1.20.2
         imagePullPolicy: IfNotPresent
         name: reviews
@@ -247,7 +247,7 @@ spec:
         - name: LOG_DIR
           value: /tmp/logs
         - name: CLUSTER_NAME
-          value: cluster1
+          value: unset
         image: docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
         imagePullPolicy: IfNotPresent
         name: reviews

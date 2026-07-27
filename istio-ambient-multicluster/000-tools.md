@@ -24,10 +24,10 @@ Useful commands:
 ./solo-istioctl uninstall --purge -y --context $context 
 
 #create a quick east-west gateway for multicluster peering
-./solo-istioctl multicluster expose --namespace istio-eastwest --context ${context}
+./solo-istioctl multicluster expose --namespace istio-gateways --context ${context}
 
 #generates a multicluster link between two clusters
-./solo-istioctl multicluster link --namespace istio-eastwest --contexts=${REMOTE_CONTEXT1},${REMOTE_CONTEXT2} 
+./solo-istioctl multicluster link --namespace istio-gateways --contexts=${KUBECONTEXT_CLUSTER1},${KUBECONTEXT_CLUSTER2}
 
 #debug istio proxy status
 ./solo-istioctl proxy-status
@@ -37,31 +37,6 @@ Useful commands:
 
 #debug Waypoints
 ./solo-istioctl waypoint
-```
-
-### Configure Trust  and Namespaces- Issue Intermediate Certs
-```bash
-curl -L https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh 
-cd istio-${ISTIO_VERSION}
-mkdir -p certs
-pushd certs
-make -f ../tools/certs/Makefile.selfsigned.mk root-ca
-
-function create_cacerts_secret() {
-  context=${1:?context}
-  cluster=${2:?cluster}
-  make -f ../tools/certs/Makefile.selfsigned.mk ${cluster}-cacerts
-  kubectl --context=${context} create ns istio-system || true
-  kubectl --context=${context} create secret generic cacerts -n istio-system \
-    --from-file=${cluster}/ca-cert.pem \
-    --from-file=${cluster}/ca-key.pem \
-    --from-file=${cluster}/root-cert.pem \
-    --from-file=${cluster}/cert-chain.pem
-}
-
-create_cacerts_secret $KUBECONTEXT_CLUSTER1 cluster1
-create_cacerts_secret $KUBECONTEXT_CLUSTER2 cluster2
-cd ../../
 ```
 
 ## Optional Tools
@@ -93,8 +68,14 @@ On Mac/Linux:
 brew install fortio
 ```
 ## Troubleshooting Resources:
-GME / Ambient debug information (check here first)
-https://docs.solo.io/gloo-mesh/latest/troubleshooting/debug/
+Solo Istio Ambient debug information (check here first)
+https://docs.solo.io/istio/1.31.x/troubleshooting/service-mesh/ambient/
+
+Multicluster peering (labs `006` and `014`)
+https://docs.solo.io/istio/1.31.x/troubleshooting/service-mesh/multicluster/
+
+Solo UI tunnel server and relay (lab `013`)
+https://docs.solo.io/istio/1.31.x/troubleshooting/ui/tunnel/
 
 OSS Ambient Debugging information
 https://github.com/istio/istio/wiki/Troubleshooting-Istio-Ambient

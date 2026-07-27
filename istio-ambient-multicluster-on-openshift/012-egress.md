@@ -79,14 +79,13 @@ EOF
 ```
 
 Enforce traffic to external services
-Next, create a Service Entry to represent the external service 'jsonplaceholder.typicode.com' and by setting the labels `istio.io/use-waypoint` and `istio.io/use-waypoint-namespace` we configure traffic targeted at this service entry to be routed through the shared egress waypoint.
+Next, create a ServiceEntry to represent the external service `jsonplaceholder.typicode.com`. The `istio.io/use-waypoint` label on it routes traffic bound for that host through the shared egress waypoint. The ServiceEntry lives in the `egress` namespace alongside the waypoint, so it needs no `istio.io/use-waypoint-namespace` label.
 
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
-  annotations:
   labels:
     istio.io/use-waypoint: egress-waypoint
   name: jsonplaceholder.typicode.com
@@ -170,11 +169,11 @@ kubectl delete serviceentry --all -n egress --context $KUBECONTEXT_CLUSTER1
 kubectl delete telemetry enable-access-logging -n egress --context $KUBECONTEXT_CLUSTER1
 kubectl delete gateway egress-waypoint -n egress --context $KUBECONTEXT_CLUSTER1
 kubectl delete namespace egress --context $KUBECONTEXT_CLUSTER1
+```
 
 ## Next Steps
 At this point we have completed the following objectives
 - Configured an egress gateway using a waypoint
 - Enforced egress policies to control outbound traffic
 
-In the next step `013` we will deploy the Gloo Mesh control plane
-```
+In the next step `013` we will install the Solo Management UI

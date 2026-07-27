@@ -29,14 +29,6 @@ helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/cni --version 1.30.2-sol
 helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.30.2-solo
 ```
 
-### Solo Gloo Platform Helm Chart
-
-```bash
-helm pull gloo-platform \
-  --version 2.12.0 \
-  --repo https://storage.googleapis.com/gloo-platform/helm-charts
-```
-
 ### Solo Istio Images
 
 ```bash

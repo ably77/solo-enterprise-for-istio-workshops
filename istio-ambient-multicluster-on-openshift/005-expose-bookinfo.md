@@ -119,7 +119,7 @@ istiod          ClusterIP      172.30.128.33    <none>                          
 Expose the bookinfo application using an HTTPRoute
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route

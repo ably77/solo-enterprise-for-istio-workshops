@@ -130,7 +130,7 @@ istiod          ClusterIP      10.96.128.33    <none>          15010/TCP,...  10
 Route all traffic from the ingress gateway to the productpage service:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo-route
