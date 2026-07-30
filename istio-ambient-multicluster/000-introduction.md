@@ -15,6 +15,7 @@
 - Apply L7 traffic management (traffic splitting, fault injection, retries) with waypoints
 - Egress Control
 - Install the Solo Management UI for multicluster mesh visibility
+- Load balance gRPC across clusters with a waypoint next to the backends
 
 # Use Cases
 - Zero Trust (mTLS)
@@ -26,6 +27,7 @@
 - Failover
 - Namespace isolation across clusters (Segments)
 - L7 traffic management (waypoints)
+- Cross-cluster gRPC load balancing
 
 ## Validated on
 - Kubernetes ≥ 1.29

@@ -47,6 +47,11 @@ docker pull docker.io/istio/examples-bookinfo-reviews-v2:1.20.2
 docker pull docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
 ```
 
+**Istio Echo App Image (gRPC client and server for lab `015`):**
+```bash
+docker pull docker.io/istio/app:1.30.2
+```
+
 **Solo Management UI Images (Optional, we can upload later for phase 2 of POC)**
 
 Management cluster (`management` chart, lab `013`):

@@ -1,0 +1,66 @@
+# Istio's echo app (pkg/test/echo) as a gRPC server. Its responses carry the serving
+# pod's hostname and the --cluster value, which is what makes load balancing and the
+# cross-cluster hop visible in the client output.
+#
+# CLUSTER_NAME is a placeholder: the lab sets it per cluster with `kubectl set env`,
+# and Kubernetes expands the $(CLUSTER_NAME) reference in args from the container env.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server
+spec:
+  selector:
+    matchLabels:
+      app: grpc-server
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+    spec:
+      containers:
+      - name: grpc-server
+        # ENTRYPOINT is /usr/local/bin/server, so only args are needed.
+        image: docker.io/istio/app:1.30.2@sha256:a72259de197c94697d15f0a87cffeadb31ad993dd9092f0b926099f4be01ca47
+        imagePullPolicy: IfNotPresent
+        args:
+        - --grpc=7070
+        - --port=8080
+        - --cluster=$(CLUSTER_NAME)
+        env:
+        - name: CLUSTER_NAME
+          value: unset
+        ports:
+        - name: grpc
+          containerPort: 7070
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+---
+# appProtocol: grpc is what lets a waypoint parse HTTP/2 off the connection and balance each
+# request separately. Without it, the waypoint treats the stream as opaque TCP and pins every
+# request to one pod. (A port named grpc or grpc-* tells Istio the same thing implicitly.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server
+spec:
+  selector:
+    app: grpc-server
+  ports:
+  - name: grpc
+    appProtocol: grpc
+    port: 7070
+    protocol: TCP
+    targetPort: 7070

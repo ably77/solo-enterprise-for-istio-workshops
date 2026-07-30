@@ -460,4 +460,4 @@ At this point we have completed the following objectives
 - Extended peering from a pair into a full mesh across all three clusters
 - Extended the global `productpage` service to `cluster3` and observed three-way failover
 
-If you would like to clean up all workshop resources, including `cluster3`, see `015` for cleanup instructions.
+If you would like to clean up all workshop resources, including `cluster3`, see `016` for cleanup instructions.

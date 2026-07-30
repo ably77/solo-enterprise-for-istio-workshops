@@ -41,3 +41,8 @@ docker pull docker.io/istio/examples-bookinfo-reviews-v2:1.20.2
 docker pull docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
 docker pull docker.io/istio/examples-bookinfo-productpage-v1:1.20.2
 ```
+
+**Istio Echo App Image (gRPC client and server for lab `010`):**
+```bash
+docker pull docker.io/istio/app:1.30.2
+```

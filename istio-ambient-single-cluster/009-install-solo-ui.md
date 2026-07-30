@@ -151,4 +151,4 @@ At this point we have completed the following objectives:
 - Installed the Solo Management UI on the cluster with the mesh product view
 - Accessed the Solo Management UI
 
-In the next step `010` we will clean up all workshop resources.
+In the next step `010` we will reproduce gRPC connection pinning against a 4-replica server and fix it with a waypoint.
