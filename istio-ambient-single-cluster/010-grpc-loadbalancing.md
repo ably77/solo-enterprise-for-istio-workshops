@@ -89,13 +89,9 @@ Confirm ztunnel sees all four pods, so the missing balancing is not a discovery 
 ```
 
 ```sh
-NAMESPACE SERVICE NAME                 SERVICE VIP             WAYPOINT ENDPOINTS
-grpcdemo  autogen.grpcdemo.grpc-server 240.240.0.23,2001:2::17 None     1/1
-grpcdemo  grpc-server                  10.101.221.197          None     4/4
+NAMESPACE SERVICE NAME  SERVICE VIP      WAYPOINT ENDPOINTS
+grpcdemo  grpc-server   10.110.219.34    None     4/4
 ```
-
-Read the `grpc-server` row and ignore the `autogen.` one: a `ServiceEntry` Solo's build generates for the
-`*.mesh.internal` multicluster name, on an auto-allocated `240.240.0.0/16` VIP. Nothing in this lab uses it.
 
 Four healthy endpoints, and 100 requests still went to one of them. Connection-level load balancing picked an endpoint once, when the client dialed.
 
@@ -159,10 +155,9 @@ ztunnel reports the waypoint in the path for the service:
 ```
 
 ```sh
-NAMESPACE SERVICE NAME                 SERVICE VIP             WAYPOINT ENDPOINTS
-grpcdemo  autogen.grpcdemo.grpc-server 240.240.0.24,2001:2::18 None     1/1
-grpcdemo  grpc-server                  10.101.221.197          waypoint 4/4
-grpcdemo  waypoint                     10.106.41.36            None     1/1
+NAMESPACE SERVICE NAME  SERVICE VIP      WAYPOINT ENDPOINTS
+grpcdemo  grpc-server   10.110.219.34    waypoint 4/4
+grpcdemo  waypoint      10.109.159.166   None     1/1
 ```
 
 The `WAYPOINT` column changed and `ENDPOINTS` did not: the same four pods, now reached through an L7 hop.
@@ -190,9 +185,8 @@ src.workload="waypoint-77f666585d-csj8l" src.identity="spiffe://cluster1.local/n
 
 `connection complete` logs only when a connection closes, which is what the `sleep` above waits for: the
 waypoint keeps each backend connection open for a 5s idle timeout after the client exits, so the lines carry
-`duration="5s"` and appear about five seconds late. Read the log immediately and you get nothing back. In the
-pinned run earlier, one such line carried the client's own `spiffe://cluster1.local/ns/grpcdemo/sa/default`
-identity to a single pod.
+`duration="5s"` and appear about five seconds late. In the pinned run earlier, one such line carried the
+client's own `spiffe://cluster1.local/ns/grpcdemo/sa/default` identity to a single pod.
 
 Because the waypoint is a full L7 proxy, the same deployment also unlocks HTTP-level routing, retries, and authorization for this service. See lab `006` for those.
 

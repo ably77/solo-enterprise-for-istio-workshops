@@ -213,6 +213,10 @@ Send another 100 requests, then read the `cluster2` ztunnel log:
 kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
   /usr/local/bin/client --count 100 grpc://grpc-server.grpcdemo.mesh.internal:7070 > /dev/null
 
+# The waypoint holds its backend connections open for a 5s idle timeout after the
+# client exits. Without this wait the log lines below do not exist yet.
+sleep 8
+
 kubectl logs -n istio-system -l app=ztunnel --context $KUBECONTEXT_CLUSTER2 --since=60s --prefix \
   | grep "connection complete" | grep 'src.workload="waypoint'
 ```
@@ -225,7 +229,7 @@ src.workload="waypoint-77f666585d-csj8l" src.identity="spiffe://cluster2.local/n
 src.workload="waypoint-77f666585d-csj8l" src.identity="spiffe://cluster2.local/ns/grpcdemo/sa/waypoint" dst.workload="grpc-server-54f6774b64-f6nm6" bytes_sent=12734
 ```
 
-`connection complete` logs when a connection closes, so give the run a moment to finish before reading. Before the waypoint, this same log showed a single line carrying the *client's* identity, `spiffe://cluster1.local/ns/grpcdemo/sa/default`, to one pod: the connection reached the backend untouched. The waypoint now terminates it and opens its own to each of the four.
+`connection complete` logs only when a connection closes, which is what the `sleep` above waits for: the waypoint keeps each backend connection open for a 5s idle timeout after the client exits, so the lines carry `duration="5s"` and appear about five seconds late. Before the waypoint, this same log showed a single line carrying the *client's* identity, `spiffe://cluster1.local/ns/grpcdemo/sa/default`, to one pod: the connection reached the backend untouched. The waypoint now terminates it and opens its own to each of the four.
 
 ## Bonus: Keep a cluster-local hostname
 
