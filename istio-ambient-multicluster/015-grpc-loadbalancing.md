@@ -22,17 +22,18 @@ export KUBECONTEXT_CLUSTER2=cluster2  # Replace with your actual kubectl context
 gRPC multiplexes many requests over one long-lived HTTP/2 connection, and Kubernetes load balances
 *connections*, so every request a client sends over that connection lands on the same pod. The
 [single-cluster version of this lab](../istio-ambient-single-cluster/010-grpc-loadbalancing.md) reproduces
-that pinning in detail and fixes it with a waypoint in a single-cluster.
+that pinning in detail and fixes it with a waypoint on a single-cluster environment
 
 This lab runs the same experiment across a global mesh. The client runs on `cluster1` and the 4-replica server on `cluster2`, where a
 single `solo.io/service-scope=global` label publishes the server at `grpc-server.grpcdemo.mesh.internal` in
 every peered cluster. A waypoint can then be used to enable per-request load balancing.
 
-Both workloads use **Istio's echo app** (`docker.io/istio/app`), the same app Istio's own multicluster
-integration tests drive. Its responses carry `Hostname=` and `Cluster=`, so every count below reports
-which pod *and* which cluster served the request.
+Both workloads use **Istio's echo app** (`docker.io/istio/app`), the same app Istio's own multicluster integration tests drive. Two of its properties do the work in this lab:
 
-# Part 1: Deploy the client and server across two clusters
+- Its responses carry `Hostname=`, so the client output tells you which pod served each request.
+- Its responses also carry `Cluster=`, so you can confirm each request crossed the cluster boundary.
+
+## Deploy the client and server across two clusters
 
 Create the `grpcdemo` namespace on both clusters and enroll it in the ambient mesh:
 ```bash
@@ -65,11 +66,11 @@ kubectl rollout status deploy/grpc-server -n grpcdemo --context $KUBECONTEXT_CLU
 kubectl get pods,svc -n grpcdemo --context $KUBECONTEXT_CLUSTER1
 ```
 
-# Part 2: Make the server reachable
+## Make the server reachable
 
-## Both hostnames fail
+### Neither hostname resolves
 
-The ordinary cluster-local name does not resolve, because there is no `grpc-server` on `cluster1`:
+There is no `grpc-server` on `cluster1`, so the ordinary cluster-local name has nothing to resolve to:
 ```bash
 kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
   /usr/local/bin/client --count 1 grpc://grpc-server:7070
@@ -80,20 +81,9 @@ fatal	Error 1/1 requests had errors; first error: rpc error: code = Unavailable 
 desc = "transport: Error while dialing: dial tcp: lookup grpc-server on 10.109.68.100:53: no such host"
 ```
 
-The global hostname does not resolve either:
-```bash
-kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
-  /usr/local/bin/client --count 1 grpc://grpc-server.grpcdemo.mesh.internal:7070
-```
+Dialing the global hostname `grpc-server.grpcdemo.mesh.internal:7070` fails the same way. Peering the clusters in lab `006` did not make their services mutually reachable: services stay cluster-scoped until you label them global.
 
-```sh
-fatal	Error 1/1 requests had errors; first error: rpc error: code = Unavailable desc = connection error:
-desc = "transport: Error while dialing: dial tcp: lookup grpc-server.grpcdemo.mesh.internal on 10.109.68.100:53: no such host"
-```
-
-Peering the clusters in lab `006` did not make their services mutually reachable. Services stay cluster-scoped until you label them global.
-
-## Expose it as a global service
+### Expose it as a global service
 
 Apply the `solo.io/service-scope=global` label to the `grpc-server` service on `cluster2`. This generates a `ServiceEntry` for the hostname `grpc-server.grpcdemo.mesh.internal` in **every** peered cluster, aggregating the endpoints of each cluster that hosts the service:
 ```bash
@@ -124,12 +114,12 @@ kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
   | grep Cluster= | sed 's/.*Cluster=//' | sort | uniq -c
 ```
 
-All 100 requests cross the boundary. The label is the `CLUSTER_NAME` value you set on the server deployment:
+All 100 requests cross the boundary. `cluster2` here is the `CLUSTER_NAME` value you set on the server deployment, echoed back in every response:
 ```sh
  100 cluster2
 ```
 
-# Part 3: Pinned at L4, across the boundary
+## Pinned at L4, across the boundary
 
 Reachability works. Now look at *which* pods serve the traffic.
 
@@ -146,11 +136,11 @@ All 100 requests land on a single pod:
  100 grpc-server-54f6774b64-j49mq
 ```
 
-No L7 proxy sits anywhere in this path. ztunnel balances at L4, per *connection*, and the client opened exactly one: ztunnel gives it mTLS and L4 authorization on the tunnel, then forwards the whole stream to one endpoint. The four-replica deployment serves like one pod.
+No L7 proxy sits anywhere in this path. ztunnel balances at L4, per *connection*, and the client opened exactly one. ztunnel gives that connection mTLS and L4 authorization, then forwards the whole stream to a single endpoint, so the four-replica deployment serves like one pod.
 
 Tools like `grpcurl` open a fresh connection per invocation, so each probe lands on a different pod and a quick test looks healthy. The pinning shows only under a client that holds its connection open.
 
-# Part 4: Configure a Waypoint for load balancing
+## Configure a waypoint for load balancing
 
 In Ambient, a waypoint load balances only over endpoints in its own cluster, so put it where the endpoints
 are: in `cluster2`, alongside the four pods. Deploy it into `grpcdemo` there and attach it to the
@@ -176,15 +166,15 @@ kubectl rollout status deploy/waypoint -n grpcdemo --context $KUBECONTEXT_CLUSTE
 kubectl label svc grpc-server -n grpcdemo istio.io/use-waypoint=waypoint --overwrite --context $KUBECONTEXT_CLUSTER2
 ```
 
-The `istio.io/use-waypoint=waypoint` label marks `grpc-server` on `cluster2` as reached through that waypoint, and the global hostname resolves to that same Service. `cluster1`'s ztunnel still sends the client's connection across the boundary at L4, and `cluster2`'s ztunnel now hands it to the waypoint instead of straight to a pod.
+The `istio.io/use-waypoint=waypoint` label marks `grpc-server` on `cluster2` as reached through that waypoint, and the global hostname resolves to that same Service. `cluster1`'s ztunnel still sends the client's connection across the boundary at L4, and `cluster2` now delivers it to the waypoint instead of straight to a pod.
 
-> **Granular control.** `istio.io/use-waypoint` applies at the namespace level or per service. We know which
-> component needs request-level load balancing here, so we scope the label to `grpc-server` and leave everything
+> **Granular control.** `istio.io/use-waypoint` applies at the namespace level or per service. In this case we
+> know which component needs request-level load balancing, so we scope the label to `grpc-server` and leave everything
 > else in `grpcdemo` on ztunnel's L4 path, without an L7 hop it has no use for. A Service label overrides a
 > namespace label in either direction, so you can carve a single service out of a namespace-wide waypoint, or
 > into one.
 
-Re-run the test from Part 3, the one that pinned all 100 requests. You have not reconfigured or restarted the client:
+Re-run the test that pinned all 100 requests. You have not reconfigured or restarted the client:
 ```bash
 kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
   /usr/local/bin/client --count 100 grpc://grpc-server.grpcdemo.mesh.internal:7070 \
@@ -214,22 +204,9 @@ grpcdemo  waypoint                     10.109.159.166          None     1/1
 
 `ENDPOINTS 4/4`, one per backend pod, and the waypoint balances evenly across all of them.
 
-# Part 5: Trace the path
+## Trace the path
 
-The request path is now: client pod → `cluster1` ztunnel → `cluster1` east-west gateway → `cluster2` east-west gateway → `cluster2` ztunnel → **`cluster2` waypoint** → server pod. The client's connection crosses the boundary at L4, and nothing terminates it until it reaches the waypoint next to the backends.
-
-Four real pod IPs back the global hostname on `cluster2`:
-```bash
-./solo-istioctl proxy-config endpoint deploy/waypoint -n grpcdemo --context $KUBECONTEXT_CLUSTER2 \
-  | grep "mesh.internal" | grep connect_originate
-```
-
-```sh
-envoy://connect_originate/10.244.0.15:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.mesh.internal
-envoy://connect_originate/10.244.2.50:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.mesh.internal
-envoy://connect_originate/10.244.2.51:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.mesh.internal
-envoy://connect_originate/10.244.2.52:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.mesh.internal
-```
+The request path is now: client pod → `cluster1` ztunnel → `cluster2` east-west gateway → `cluster2` ztunnel → **`cluster2` waypoint** → server pod. The source ztunnel dials the *remote* cluster's east-west gateway directly, so the client's connection crosses the boundary at L4 and nothing terminates it until it reaches the waypoint next to the backends.
 
 Send another 100 requests, then read the `cluster2` ztunnel log:
 ```bash
@@ -250,7 +227,7 @@ src.workload="waypoint-77f666585d-csj8l" src.identity="spiffe://cluster2.local/n
 
 `connection complete` logs when a connection closes, so give the run a moment to finish before reading. Before the waypoint, this same log showed a single line carrying the *client's* identity, `spiffe://cluster1.local/ns/grpcdemo/sa/default`, to one pod: the connection reached the backend untouched. The waypoint now terminates it and opens its own to each of the four.
 
-# Bonus: Keep a cluster-local hostname
+## Bonus: Keep a cluster-local hostname
 
 *Optional. The lab's objectives are complete; skip to Cleanup if you only came for the load balancing.*
 
@@ -261,7 +238,7 @@ The client dials `grpc-server.grpcdemo.mesh.internal`, a hostname you had to giv
 kubectl label svc grpc-server -n grpcdemo solo.io/service-takeover=true --overwrite --context $KUBECONTEXT_CLUSTER2
 ```
 
-Dial `grpc-server:7070`, the short name that failed to resolve in Part 2:
+Dial `grpc-server:7070`, the short name that failed to resolve earlier:
 ```bash
 kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \
   /usr/local/bin/client --count 100 grpc://grpc-server:7070 \
@@ -276,13 +253,14 @@ The cluster-local hostname now balances across four pods in another cluster:
   23 grpc-server-54f6774b64-f6nm6
 ```
 
-`cluster1` has no `grpc-server` Service to answer that name. The mesh answers the short name from the global service, so a cluster needs no placeholder Service to consume, or to take over, a service hosted elsewhere.
+`cluster1` has no `grpc-server` Service to answer that name; the mesh answers it from the global service.
 
 > **Takeover is unconditional.** It applies to every caller of the hostname, so you cannot redirect one client
-> to remote endpoints while another stays local. You also give up the locality lever: with takeover in effect,
-> `networking.istio.io/traffic-distribution=PreferNetwork` no longer decides whether callers reach only local
-> endpoints or both local and global ones. Confirm the application can handle cross-cluster requests
-> unconditionally before applying the label. See
+> to remote endpoints while another stays local. You also give up the locality lever:
+> `networking.istio.io/traffic-distribution=PreferNetwork`, which normally keeps traffic on endpoints in the
+> caller's own network while they stay healthy, no longer decides whether callers reach only local endpoints or
+> both local and global ones. Confirm the application can handle cross-cluster requests unconditionally before
+> applying the label. See
 > [Takeover](https://docs.solo.io/istio/1.30.x/ambient/multicluster/multi-apps/overview/#takeover) in the Solo docs.
 
 The label is reversible; removing it sends the short name back to local resolution:
@@ -308,23 +286,4 @@ done
 
 Both commands should return nothing.
 
-## Summary
-
-At this point we have completed the following objectives:
-- Deploy a gRPC client and a 4-replica server across `cluster1` and `cluster2`, and watched both hostnames fail to resolve, because peering shares no services on its own
-- Exposed the server as a global service reachable at `grpc-server.grpcdemo.mesh.internal`, with no copy of it on `cluster1`
-- Reproduced connection pinning across the boundary: 100 requests multiplexed over one connection all landed on one of four remote pods
-- Deployed the waypoint in `cluster2` attached to the `grpc-server` Service, and distributed 100 multiplexed requests across four pods in another cluster without touching the client
-- Read `ENDPOINTS 4/4` from `ztunnel-config service` as confirmation the waypoint balances over real pods, and learned that `1/1` on a four-pod service is how the wrong placement shows up
-- Traced the path through the east-west gateways, the `cluster2` ztunnel, and the `cluster2` waypoint
-
-The bonus section adds `solo.io/service-takeover`, so an unmodified client reaches `cluster2` through a plain cluster-local hostname.
-
-A waypoint load balances gRPC at the request level with no application change and no external load balancer, in one cluster or across two. Multicluster adds one placement rule:
-
-> **A waypoint load balances only over endpoints in its own cluster.** Remote endpoints collapse into a
-> single east-west gateway address, leaving a client-side waypoint nothing to spread traffic over. Put a
-> waypoint in every cluster that runs backends, attach it to the Service that carries those endpoints, and
-> let cross-cluster traffic arrive at L4 so the destination cluster's waypoint fans it out.
-
-The single-cluster workshop has a [same-cluster version of this lab](../istio-ambient-single-cluster/010-grpc-loadbalancing.md), which reproduces the pinning and the waypoint fix with the client and server side by side.
+If you would like to clean up all workshop resources, see `016` for cleanup instructions.

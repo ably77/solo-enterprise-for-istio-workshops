@@ -1,13 +1,12 @@
 # gRPC Load Balancing with a Waypoint
 
 # Objectives
-- Reproduce gRPC connection pinning with a client and a 4-replica server, and see why a quick connection-per-request test hides it
-- Restore per-request load balancing with a waypoint, changing no application code
-- Confirm from the waypoint's endpoints and the ztunnel logs that the waypoint terminated the client's connection and opened one of its own per backend
+- Reproduce gRPC connection pinning with a client and a 4-replica server
+- Restore per-request load balancing by attaching a waypoint to the `grpc-server` Service, without changing application code
+- Confirm from the ztunnel logs that the waypoint terminated the client's connection and opened one of its own per backend
 
 ## Prerequisites
 - This lab assumes you have completed labs `000`–`002`, so Solo Istio Ambient is installed on the cluster.
-- Bookinfo is not used here, so nothing from labs `003`–`009` is required.
 
 Ensure the following environment variable is set:
 ```bash
@@ -20,10 +19,9 @@ gRPC runs over a single long-lived HTTP/2 connection and multiplexes many reques
 
 Two workarounds are common: build load balancing logic into the client, or push traffic out to an external load balancer and change the client to dial it. This lab uses an ambient mesh waypoint instead.
 
-Both workloads use **Istio's echo app** (`docker.io/istio/app`), the same app Istio's own integration tests drive. Three of its properties do the work in this lab:
+Both workloads use **Istio's echo app** (`docker.io/istio/app`), the same app Istio's own integration tests drive. Two of its properties do the work in this lab:
 
-- Its responses carry `Hostname=` and `Cluster=`, so the client output tells you which pod served each request.
-- Its client takes the target as an argument, so you can point it at a different hostname without a rebuild.
+- Its responses carry `Hostname=`, so the client output tells you which pod served each request.
 - Its client has a `--new-connection-per-request` flag, so you can toggle connection reuse on one binary and compare the two runs.
 
 ## Deploy the client and server
@@ -34,11 +32,10 @@ kubectl create ns grpcdemo --context $KUBECONTEXT_CLUSTER1 --dry-run=client -o y
 kubectl label ns grpcdemo istio.io/dataplane-mode=ambient --overwrite --context $KUBECONTEXT_CLUSTER1
 ```
 
-Deploy the client and the 4-replica server side by side. The manifest passes `--cluster=$(CLUSTER_NAME)`, which Kubernetes expands from the container's environment, so every response also reports the serving cluster:
+Deploy the client and the 4-replica server:
 ```bash
 kubectl apply -f grpc/grpc-client.yaml -n grpcdemo --context $KUBECONTEXT_CLUSTER1
 kubectl apply -f grpc/grpc-server.yaml -n grpcdemo --context $KUBECONTEXT_CLUSTER1
-kubectl set env deploy/grpc-server -n grpcdemo CLUSTER_NAME=$KUBECONTEXT_CLUSTER1 --context $KUBECONTEXT_CLUSTER1
 kubectl rollout status deploy/grpc-client -n grpcdemo --context $KUBECONTEXT_CLUSTER1
 kubectl rollout status deploy/grpc-server -n grpcdemo --context $KUBECONTEXT_CLUSTER1
 ```
@@ -100,7 +97,7 @@ Four healthy endpoints, and 100 requests still went to one of them. Connection-l
 
 ## A waypoint fixes it
 
-A waypoint terminates the client's HTTP/2 connection, reads individual gRPC requests off it, and picks an endpoint per request. Deploy one into `grpcdemo` and enroll the namespace:
+A waypoint terminates the client's HTTP/2 connection, reads individual gRPC requests off it, and picks an endpoint per request. Deploy one into `grpcdemo` and attach it to the `grpc-server` Service:
 ```bash
 kubectl apply --context $KUBECONTEXT_CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
@@ -119,10 +116,16 @@ spec:
         from: All
 EOF
 kubectl rollout status deploy/waypoint -n grpcdemo --context $KUBECONTEXT_CLUSTER1
-kubectl label ns grpcdemo istio.io/use-waypoint=waypoint --overwrite --context $KUBECONTEXT_CLUSTER1
+kubectl label svc grpc-server -n grpcdemo istio.io/use-waypoint=waypoint --overwrite --context $KUBECONTEXT_CLUSTER1
 ```
 
-The `istio.io/use-waypoint=waypoint` label marks every service in `grpcdemo` as reached through that waypoint, so ztunnel now delivers the client's connection to the waypoint instead of to a server pod. The client is not reconfigured and does not restart.
+The `istio.io/use-waypoint=waypoint` label marks `grpc-server` as reached through that waypoint, so ztunnel now delivers the client's connection to the waypoint instead of to a server pod. The client is not reconfigured and does not restart.
+
+> **Granular control.** `istio.io/use-waypoint` applies at the namespace level or per service. In this case we
+> know which component needs request-level load balancing, so we scope the label to `grpc-server` and leave everything
+> else in `grpcdemo` on ztunnel's L4 path, without an L7 hop it has no use for. A Service label overrides a
+> namespace label in either direction, so you can carve a single service out of a namespace-wide waypoint, or
+> into one.
 
 Re-run the connection-reuse test, the one that pinned all 100 requests:
 ```bash
@@ -140,7 +143,7 @@ One connection carrying 100 multiplexed requests now reaches all four pods:
   23 grpc-server-85c8869bd9-lcn2p
 ```
 
-That result matches what connection-per-request achieved, without asking the client to throw away its connection on every call. All without changing any application code or adding additional external load balancers.
+That result matches what connection-per-request achieved, without asking the client to throw away its connection on every call, and without changing application code or adding an external load balancer.
 
 ## Trace the path
 
@@ -157,18 +160,7 @@ grpcdemo  grpc-server   10.110.219.34    waypoint 4/4
 grpcdemo  waypoint      10.109.159.166   None     1/1
 ```
 
-The waypoint balances over four real pod IPs, which is what lets it pick a different one per request:
-```bash
-./solo-istioctl proxy-config endpoint deploy/waypoint -n grpcdemo --context $KUBECONTEXT_CLUSTER1 \
-  | grep connect_originate | grep grpc-server
-```
-
-```sh
-envoy://connect_originate/10.244.0.15:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.svc.cluster.local
-envoy://connect_originate/10.244.2.50:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.svc.cluster.local
-envoy://connect_originate/10.244.2.51:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.svc.cluster.local
-envoy://connect_originate/10.244.2.52:7070    HEALTHY   OK   inbound-vip|7070|http|grpc-server.grpcdemo.svc.cluster.local
-```
+The `WAYPOINT` column changed and `ENDPOINTS` did not: the same four pods, now reached through an L7 hop.
 
 Send another 100 requests, then read the ztunnel log:
 ```bash
@@ -198,6 +190,4 @@ Remove the namespace, which takes the waypoint, the apps, and the labels with it
 kubectl delete ns grpcdemo --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
-## Next Steps
-
-We reproduced gRPC connection pinning behavior, then restored per-request load balancing with a namespace waypoint and traced the fix through the waypoint's endpoints and the ztunnel logs, with no application change and no external load balancer.
+If you would like to clean up all workshop resources, see `011` for cleanup instructions.
