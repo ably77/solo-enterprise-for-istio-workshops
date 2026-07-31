@@ -1,6 +1,6 @@
 # Changelog
 
-0.2.0 - (7-30-26)
+0.2.0 - (7-31-26)
 ---
 - add new lab: `/istio-ambient-single-cluster/010-grpc-loadbalancing.md`
 - add new lab: `/istio-ambient-multicluster/015-grpc-loadbalancing.md`
