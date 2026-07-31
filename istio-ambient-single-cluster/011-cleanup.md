@@ -22,6 +22,12 @@ kubectl delete gateway ingress -n istio-system --context $KUBECONTEXT_CLUSTER1 -
 kubectl delete namespace bookinfo-frontends bookinfo-backends --context $KUBECONTEXT_CLUSTER1
 ```
 
+## gRPC demo (lab `010`)
+
+```bash
+kubectl delete namespace grpcdemo --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+```
+
 ## Uninstall Istio
 
 ```bash

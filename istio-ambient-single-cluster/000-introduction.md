@@ -7,12 +7,14 @@
 - Expose the Bookinfo frontend via an Ingress Gateway
 - Control egress traffic through a dedicated egress waypoint
 - Observe L4 and L7 mesh metrics
+- Load balance gRPC per request with a waypoint
 
 # Use Cases
 - Zero Trust (mTLS)
 - Ingress
 - Egress Control
 - Observability
+- gRPC load balancing
 
 ## Validated on
 - GKE (Kubernetes 1.29+)

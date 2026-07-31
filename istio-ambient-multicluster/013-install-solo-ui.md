@@ -250,4 +250,4 @@ You have completed the workshop! You have successfully:
 - Configured egress with a waypoint
 - Installed the Solo Management UI for cross-cluster mesh visibility
 
-If you'd like to keep going, `014-add-a-third-cluster.md` is a bonus lab that walks through scaling this mesh out to a third cluster. Otherwise, if you would like to clean up all workshop resources, see `015` for cleanup instructions.
+In the next step `015` we will load balance gRPC across the two clusters with a waypoint. `014-add-a-third-cluster.md` is a bonus lab that scales this mesh out to a third cluster, and if you would like to clean up all workshop resources instead, see `016` for cleanup instructions.

@@ -40,7 +40,8 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 | [012-egress.md](012-egress.md) | Egress control with a waypoint |
 | [013-install-solo-ui.md](013-install-solo-ui.md) | Install the Solo Management UI |
 | [014-add-a-third-cluster.md](014-add-a-third-cluster.md) | Bonus: scale the mesh out to a third cluster |
-| [015-cleanup.md](015-cleanup.md) | Teardown |
+| [015-grpc-loadbalancing.md](015-grpc-loadbalancing.md) | Cross-cluster gRPC load balancing with a waypoint |
+| [016-cleanup.md](016-cleanup.md) | Teardown |
 
 ## Getting Started
 
