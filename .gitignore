@@ -49,3 +49,7 @@ temp/
 
 # Work-in-progress labs not ready for the public repo yet
 /advanced-scenarios/
+
+# Diagram sources — only the rendered PNGs in images/ are committed
+images/*.html
+images/render.sh
