@@ -1,0 +1,47 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: salesforce-egress
+  namespace: egress
+spec:
+  targetRefs:
+  - kind: ServiceEntry
+    group: networking.istio.io
+    name: login.salesforce.com
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster1.local/ns/bookinfo-backends/sa/bookinfo-reviews"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: zoom-egress
+  namespace: egress
+spec:
+  targetRefs:
+  - kind: ServiceEntry
+    group: networking.istio.io
+    name: zoom.us
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster1.local/ns/bookinfo-backends/sa/bookinfo-ratings"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: googleapis-egress
+  namespace: egress
+spec:
+  targetRefs:
+  - kind: ServiceEntry
+    group: networking.istio.io
+    name: www.googleapis.com
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster1.local/ns/bookinfo-frontends/sa/bookinfo-productpage"]

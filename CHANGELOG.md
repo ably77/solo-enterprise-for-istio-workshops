@@ -1,5 +1,9 @@
 # Changelog
 
+0.2.1 - (8-13-26)
+---
+- Extend `/istio-ambient-single-cluster/005-egress.md` with a deny-by-default egress posture and a per-app SaaS allowlist, adding `auth-policy/egress-default-deny.yaml` and `auth-policy/saas-egress-auth.yaml`
+
 0.2.0 - (7-31-26)
 ---
 - add new lab: `/istio-ambient-single-cluster/010-grpc-loadbalancing.md`
