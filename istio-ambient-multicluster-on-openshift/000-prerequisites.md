@@ -6,6 +6,8 @@
 5. `openssl` available in your shell — used in lab `002` to generate the shared root trust CA. macOS and Linux include this by default. Windows users must use WSL or Git Bash.
 6. If you want to push local traffic easily install Vegeta as well ([Vegeta installation](000-tools.md#vegeta-cli-load-generator))
 
+> **Network:** peering the two clusters needs ports **15008** (HBONE data plane) and **15012** (xDS/CA and registry sync) reachable inbound on each east-west gateway from the other cluster's network. Full list: [Ports used in an Istio ambient mesh](../reference/ambient-ports.md).
+
 ### Repos/Images:
 
 **Helm Repos**

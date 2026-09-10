@@ -1,5 +1,12 @@
 # Changelog
 
+0.2.2 - (9-10-26)
+---
+- Rename the local demo domain from `glootest.com` to `try-solo.io`
+- Add a shared ports reference at `reference/ambient-ports.md` covering every port an ambient mesh uses, grouped by data plane, telemetry, and control plane, plus the two ports east-west gateway peering needs and `kubectl` commands to confirm them on a live cluster
+- Link the ports reference from the root README and all five workshop READMEs, and add a peering-port note (15008, 15012) to both multicluster prerequisites
+- Add diagrams for grpc-loadbalancing
+
 0.2.1 - (8-13-26)
 ---
 - Extend `/istio-ambient-single-cluster/005-egress.md` with a deny-by-default egress posture and a per-app SaaS allowlist, adding `auth-policy/egress-default-deny.yaml` and `auth-policy/saas-egress-auth.yaml`

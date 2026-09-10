@@ -69,3 +69,7 @@ A hands-on migration workshop: start with open-source Istio in **sidecar mode** 
    cd istio-oss-sidecar-to-enterprise-ambient
    ```
 4. Follow the labs in order starting with `000-introduction.md`
+
+## Reference
+
+- [Ports used in an Istio ambient mesh](../reference/ambient-ports.md): what to open on firewalls, cloud security groups, and `NetworkPolicy`.

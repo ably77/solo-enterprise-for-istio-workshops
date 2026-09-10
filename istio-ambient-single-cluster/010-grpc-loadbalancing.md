@@ -24,6 +24,8 @@ Both workloads use **Istio's echo app** (`docker.io/istio/app`), the same app Is
 - Its responses carry `Hostname=`, so the client output tells you which pod served each request.
 - Its client has a `--new-connection-per-request` flag, so you can toggle connection reuse on one binary and compare the two runs.
 
+![](../images/grpc-loadbalancing-singlecluster-1.png)
+
 ## Deploy the client and server
 
 Create the `grpcdemo` namespace and enroll it in the ambient mesh:
