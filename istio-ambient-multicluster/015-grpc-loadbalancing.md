@@ -208,6 +208,8 @@ grpcdemo  waypoint                     10.109.159.166          None     1/1
 
 The request path is now: client pod → `cluster1` ztunnel → `cluster2` east-west gateway → `cluster2` ztunnel → **`cluster2` waypoint** → server pod. The source ztunnel dials the *remote* cluster's east-west gateway directly, so the client's connection crosses the boundary at L4 and nothing terminates it until it reaches the waypoint next to the backends.
 
+![](../images/grpc-loadbalancing-1.png)
+
 Send another 100 requests, then read the `cluster2` ztunnel log:
 ```bash
 kubectl exec -n grpcdemo deploy/grpc-client --context $KUBECONTEXT_CLUSTER1 -- \

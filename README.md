@@ -14,6 +14,12 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 | [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Standard Kubernetes | 2 | Ambient mesh across two standard Kubernetes clusters — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Solo Management UI, cross-cluster gRPC load balancing. |
 | [`istio-oss-sidecar-to-enterprise-ambient`](istio-oss-sidecar-to-enterprise-ambient/) | Standard Kubernetes | 1 | In-place migration from OSS Istio sidecar to Solo Enterprise Ambient, ingress, egress, waypoints, observability, zero-trust access control |
 
+## Reference
+
+| Page | Description |
+|---|---|
+| [`reference/ambient-ports.md`](reference/ambient-ports.md) | Every port an ambient mesh uses, grouped by data plane, telemetry, and control plane. The list to hand to whoever owns your firewalls, security groups, and `NetworkPolicy`. |
+
 ## Use Cases Covered
 
 | Use Case | Single-cluster (K8s) | Single-cluster OSS→Ambient (K8s) | Multicluster (K8s) | Single-cluster (OCP) | Multicluster (OCP) |

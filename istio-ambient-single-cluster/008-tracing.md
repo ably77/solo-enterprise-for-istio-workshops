@@ -260,10 +260,10 @@ kubectl get httproute bookinfo-route -n bookinfo-frontends \
   -o jsonpath='{.spec.hostnames}'
 ```
 
-If this returns a hostname (for example, `["bookinfo.glootest.com"]`), set it:
+If this returns a hostname (for example, `["bookinfo.try-solo.io"]`), set it:
 
 ```bash
-export BOOKINFO_HOST="bookinfo.glootest.com"  # Replace with your hostname, or leave empty if none
+export BOOKINFO_HOST="bookinfo.try-solo.io"  # Replace with your hostname, or leave empty if none
 ```
 
 Send several requests to the Bookinfo productpage:

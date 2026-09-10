@@ -44,3 +44,7 @@ cd istio-ambient-single-cluster-on-openshift
 ```
 
 Then work through the labs in order, starting with [000-introduction.md](000-introduction.md).
+
+## Reference
+
+- [Ports used in an Istio ambient mesh](../reference/ambient-ports.md): what to open on firewalls, cloud security groups, and `NetworkPolicy`.
