@@ -7,7 +7,7 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh across tw
 | Component | Version |
 |---|---|
 | Istio (Solo) | 1.30.2-solo |
-| Solo Management UI | 0.5.1 |
+| Solo Management UI | 0.5.8 |
 | OpenShift | 4.16.0 – 4.19.30 (latest) |
 
 ## Prerequisites

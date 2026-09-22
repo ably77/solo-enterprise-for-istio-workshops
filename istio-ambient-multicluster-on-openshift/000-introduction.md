@@ -30,7 +30,7 @@
 ## Validated on
 - OpenShift 4.16.0 - 4.19.30 (latest)
 - Istio 1.30.2-solo
-- Solo Management UI 0.5.1
+- Solo Management UI 0.5.8
 
 # High Level Architecture Diagram
 ![](../images/multicluster-global-mesh-1.png)

@@ -27,9 +27,9 @@ helm pull oci://us-docker.pkg.dev/soloio-img/istio-helm/ztunnel --version 1.30.2
 
 Solo Management UI Helm Charts (used in lab `013`)
 ```bash
-helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/management --version 0.5.1
+helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/management --version 0.5.8
 
-helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/relay --version 0.5.1
+helm pull oci://us-docker.pkg.dev/solo-public/solo-enterprise-helm/charts/relay --version 0.5.8
 ```
 
 **Istio Images:** 
@@ -53,18 +53,18 @@ docker pull docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
 
 Management cluster (`management` chart, lab `013`):
 ```bash
-docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-frontend:0.5.1
-docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-backend:0.5.1
-docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-server:0.5.1
-docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-autoauth:v0.2.2
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-frontend:0.5.8
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-ui-backend:0.5.8
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-server:0.5.8
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-autoauth:v0.2.3
 docker pull clickhouse/clickhouse-server:26.3.17-alpine
-docker pull docker.io/otel/opentelemetry-collector-contrib:0.153.0
+docker pull docker.io/otel/opentelemetry-collector-contrib:0.158.0
 ```
 
 Workload clusters (`relay` chart, lab `013`):
 ```bash
-docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-client:0.5.1
-docker pull docker.io/otel/opentelemetry-collector-contrib:0.153.0
+docker pull us-docker.pkg.dev/solo-public/solo-enterprise/solo-enterprise-tunnel-client:0.5.8
+docker pull docker.io/otel/opentelemetry-collector-contrib:0.158.0
 ```
 
 > **Note:** Lab `013` includes commented-out `image` override blocks in both Helm values files. Uncomment

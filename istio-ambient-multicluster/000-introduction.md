@@ -32,7 +32,7 @@
 ## Validated on
 - Kubernetes ≥ 1.29
 - Istio 1.30.2-solo
-- Solo Management UI 0.5.1
+- Solo Management UI 0.5.8
 
 # High Level Architecture Diagram
 ![](../images/multicluster-global-mesh-2.png)

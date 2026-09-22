@@ -17,9 +17,9 @@
 
 > **Run the cleanup in lab `007` or `008` before starting this lab.** Segments replace the
 > `*.mesh.internal` hostnames with the segment domain (`mesh.acme` / `mesh.acquired`), including this
-> lab's `solo-enterprise-ui.kagent.mesh.internal`. With a segment label still on `istio-system`, the
-> relay cannot resolve the management UI, and its `tunnel-client` container restarts every two seconds
-> with `dial tcp: lookup solo-enterprise-ui.kagent.mesh.internal ... no such host`. Confirm you are back
+> lab's `solo-enterprise-tunnel.kagent.mesh.internal`. With a segment label still on `istio-system`, the
+> relay cannot resolve the management tunnel, and its `solo-enterprise-tunnel-client` pod restarts every two seconds
+> with `dial tcp: lookup solo-enterprise-tunnel.kagent.mesh.internal ... no such host`. Confirm you are back
 > on a flat mesh before continuing:
 >
 > ```bash
@@ -33,7 +33,7 @@
 ## Set environment variables
 
 ```bash
-export SOLO_MANAGEMENT_UI_VERSION=0.5.1
+export SOLO_MANAGEMENT_UI_VERSION=0.5.8
 export SOLO_MANAGEMENT_UI_OCI_REPO=us-docker.pkg.dev/solo-public/solo-enterprise-helm
 
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
@@ -62,11 +62,11 @@ kubectl create namespace kagent --context $KUBECONTEXT_CLUSTER1 2>/dev/null || t
 oc --context $KUBECONTEXT_CLUSTER1 adm policy add-scc-to-user anyuid -z management-clickhouse -n kagent
 ```
 
-> **Why this is needed:** The other workloads in the chart (`solo-enterprise-ui`, `solo-enterprise-telemetry-collector`) already set `runAsNonRoot: true` with no hardcoded UID, so OpenShift can auto-assign a UID and they run cleanly under `restricted-v2`. Only ClickHouse hardcodes UID `101`. The relay chart installed on cluster2 below has no equivalent issue — no additional SCC binding is required there.
+> **Why this is needed:** The other workloads in the chart (`solo-enterprise-ui`, `solo-enterprise-tunnel`, `solo-enterprise-k8sobjects-collector`, `solo-enterprise-telemetry-collector`) already set `runAsNonRoot: true` with no hardcoded UID, so OpenShift can auto-assign a UID and they run cleanly under `restricted-v2`. Only ClickHouse hardcodes UID `101`. The relay chart installed on cluster2 below has no equivalent issue — no additional SCC binding is required there.
 
 ## Install the Solo Management UI on cluster1
 
-Install the `management` chart. This installs ClickHouse (telemetry storage), the Solo Enterprise telemetry collector, and the Solo Enterprise UI with the **mesh** product view enabled. The chart enables Istio ambient integration by default — it automatically labels its own pods with `istio.io/dataplane-mode=ambient` and labels the `solo-enterprise-ui` and `solo-enterprise-telemetry-gateway` services with `solo.io/service-scope=global`, so the workload cluster's relay can reach them over the ambient mesh via `*.mesh.internal`.
+Install the `management` chart. This installs ClickHouse (telemetry storage), the Solo Enterprise telemetry collector, and the Solo Enterprise UI with the **mesh** product view enabled. The chart enables Istio ambient integration by default — it automatically labels its own pods with `istio.io/dataplane-mode=ambient` and labels the `solo-enterprise-ui`, `solo-enterprise-tunnel`, and `solo-enterprise-telemetry-gateway` services with `solo.io/service-scope=global`, so the workload cluster's relay can reach them over the ambient mesh via `*.mesh.internal`.
 
 > **OpenShift ambient probes:** With ambient enrollment, kubelet readiness/liveness probes are SNAT-rewritten in the host netns by istio-cni. This only works when OVN-Kubernetes is running in **local gateway mode** (`routingViaHost: true`) — see the OpenShift prerequisite in [002-install-istio-on-cluster1.md](002-install-istio-on-cluster1.md#openshift-platform-prerequisite-ovn-kubernetes-local-gateway-mode). On a default OpenShift install (shared gateway mode), the chart's pods will CrashLoop on liveness because every probe times out.
 
@@ -134,7 +134,7 @@ clickhouse:
 #    registry: docker.io
 #    repository: otel
 #    name: opentelemetry-collector-contrib
-#    tag: 0.153.0
+#    tag: 0.158.0
 EOF
 ```
 
@@ -147,6 +147,10 @@ kubectl rollout status statefulset/solo-enterprise-telemetry-collector \
   -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
 kubectl rollout status deployment/solo-enterprise-ui \
   -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
+kubectl rollout status deployment/solo-enterprise-tunnel \
+  -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
+kubectl rollout status deployment/solo-enterprise-k8sobjects-collector \
+  -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
 ```
 
 Verify the pods on cluster1:
@@ -158,21 +162,23 @@ kubectl get pods -n kagent --context $KUBECONTEXT_CLUSTER1
 The output should look similar to:
 
 ```
-NAME                                            READY   STATUS    RESTARTS   AGE
-management-clickhouse-shard0-0                  1/1     Running   0          90s
-solo-enterprise-telemetry-collector-0           1/1     Running   0          90s
-solo-enterprise-ui-7c5f8d6b4d-abc12             1/1     Running   0          90s
+NAME                                                    READY   STATUS    RESTARTS   AGE
+management-clickhouse-shard0-0                          1/1     Running   0          90s
+solo-enterprise-k8sobjects-collector-6d9f7b8c5-x2k4p    1/1     Running   0          90s
+solo-enterprise-telemetry-collector-0                   1/1     Running   0          90s
+solo-enterprise-tunnel-5b8c9d7f6-q7m2n                  1/1     Running   0          90s
+solo-enterprise-ui-7c5f8d6b4d-abc12                     1/1     Running   0          90s
 ```
 
 Confirm the chart auto-applied the cross-cluster service labels — the relay on cluster2 relies on these:
 
 ```bash
-kubectl get svc solo-enterprise-ui solo-enterprise-telemetry-gateway \
+kubectl get svc solo-enterprise-ui solo-enterprise-tunnel solo-enterprise-telemetry-gateway \
   -n kagent --context $KUBECONTEXT_CLUSTER1 \
   -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.solo\.io/service-scope}{"\n"}{end}'
 ```
 
-Both services should report `global`.
+All three services should report `global`.
 
 ## Expose the Solo UI through an OpenShift Route
 
@@ -226,6 +232,9 @@ helm upgrade --install relay \
   --kube-context $KUBECONTEXT_CLUSTER2 \
   -f -<<EOF
 cluster: "${MESH_NAME_CLUSTER2}"
+products:
+  mesh:
+    enabled: true
 # override (global fallback for all solo-owned images)
 #global:
 #  image:
@@ -233,7 +242,7 @@ cluster: "${MESH_NAME_CLUSTER2}"
 #    repository: solo-enterprise
 #    tag: ${SOLO_MANAGEMENT_UI_VERSION}
 tunnel:
-  fqdn: solo-enterprise-ui.kagent.mesh.internal
+  fqdn: solo-enterprise-tunnel.kagent.mesh.internal
   port: 9000
 telemetry:
   fqdn: solo-enterprise-telemetry-gateway.kagent.mesh.internal
@@ -242,7 +251,7 @@ telemetry:
 #    registry: docker.io
 #    repository: otel
 #    name: opentelemetry-collector-contrib
-#    tag: 0.153.0
+#    tag: 0.158.0
 EOF
 ```
 
@@ -250,6 +259,8 @@ Wait for the relay rollout:
 
 ```bash
 kubectl rollout status deployment/solo-enterprise-relay \
+  -n solo-enterprise --context $KUBECONTEXT_CLUSTER2 --timeout=180s
+kubectl rollout status deployment/solo-enterprise-tunnel-client \
   -n solo-enterprise --context $KUBECONTEXT_CLUSTER2 --timeout=180s
 ```
 
