@@ -1,6 +1,6 @@
 # Changelog
 
-0.2.3 - (9-22-26)
+0.2.3 - (9-23-26)
 ---
 - Upgrade the Solo Management UI and `relay` charts to `0.5.8` in all four workshops, including prerequisite image lists (autoauth `v0.2.3`, `opentelemetry-collector-contrib` `0.158.0`)
 - Chart `0.5.8` runs the tunnel server and k8sobjects collector as their own Deployments; the Solo UI labs now wait on `solo-enterprise-tunnel` and `solo-enterprise-k8sobjects-collector` and list both in the expected pods
