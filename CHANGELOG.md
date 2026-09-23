@@ -1,5 +1,11 @@
 # Changelog
 
+0.2.3 - (9-23-26)
+---
+- Upgrade the Solo Management UI and `relay` charts to `0.5.8` in all four workshops, including prerequisite image lists (autoauth `v0.2.3`, `opentelemetry-collector-contrib` `0.158.0`)
+- Chart `0.5.8` runs the tunnel server and k8sobjects collector as their own Deployments; the Solo UI labs now wait on `solo-enterprise-tunnel` and `solo-enterprise-k8sobjects-collector` and list both in the expected pods
+- Multicluster Solo UI labs: point the relay's `tunnel.fqdn` at `solo-enterprise-tunnel.kagent.mesh.internal`, set `products.mesh.enabled: true` (relay `0.5.8` fails validation without an enabled product), wait on the new `solo-enterprise-tunnel-client` Deployment, and check the `solo-enterprise-tunnel` Service for the `global` scope label
+
 0.2.2 - (9-10-26)
 ---
 - Rename the local demo domain from `glootest.com` to `try-solo.io`

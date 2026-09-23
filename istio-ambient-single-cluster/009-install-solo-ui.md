@@ -16,7 +16,7 @@
 ## Set environment variables
 
 ```bash
-export SOLO_MANAGEMENT_UI_VERSION=0.5.1
+export SOLO_MANAGEMENT_UI_VERSION=0.5.8
 export SOLO_MANAGEMENT_UI_OCI_REPO=us-docker.pkg.dev/solo-public/solo-enterprise-helm
 
 export KUBECONTEXT_CLUSTER1=cluster1  # Replace with your actual kubectl context name
@@ -97,7 +97,7 @@ clickhouse:
 #    registry: docker.io
 #    repository: otel
 #    name: opentelemetry-collector-contrib
-#    tag: 0.153.0
+#    tag: 0.158.0
 EOF
 ```
 
@@ -110,6 +110,10 @@ kubectl rollout status statefulset/solo-enterprise-telemetry-collector \
   -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
 kubectl rollout status deployment/solo-enterprise-ui \
   -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
+kubectl rollout status deployment/solo-enterprise-tunnel \
+  -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
+kubectl rollout status deployment/solo-enterprise-k8sobjects-collector \
+  -n kagent --context $KUBECONTEXT_CLUSTER1 --timeout=300s
 ```
 
 Verify the pods:
@@ -121,10 +125,12 @@ kubectl get pods -n kagent --context $KUBECONTEXT_CLUSTER1
 The output should look similar to:
 
 ```
-NAME                                            READY   STATUS    RESTARTS   AGE
-management-clickhouse-shard0-0                  1/1     Running   0          90s
-solo-enterprise-telemetry-collector-0           1/1     Running   0          90s
-solo-enterprise-ui-7c5f8d6b4d-abc12             1/1     Running   0          90s
+NAME                                                    READY   STATUS    RESTARTS   AGE
+management-clickhouse-shard0-0                          1/1     Running   0          90s
+solo-enterprise-k8sobjects-collector-6d9f7b8c5-x2k4p    1/1     Running   0          90s
+solo-enterprise-telemetry-collector-0                   1/1     Running   0          90s
+solo-enterprise-tunnel-5b8c9d7f6-q7m2n                  1/1     Running   0          90s
+solo-enterprise-ui-7c5f8d6b4d-abc12                     1/1     Running   0          90s
 ```
 
 ## Access the Solo Management UI
@@ -143,7 +149,7 @@ This workshop is single-cluster, but the chart is multicluster-ready. To attach 
 
 1. Install Istio Ambient on the second cluster with the same shared root trust (see the multicluster workshop, labs `002-003`).
 2. Use `solo-istioctl multicluster expose` and `solo-istioctl multicluster link` to wire east-west connectivity between the two clusters (multicluster workshop lab `006`).
-3. Install the `relay` chart on the second cluster pointing at `solo-enterprise-ui.kagent.mesh.internal:9000` and `solo-enterprise-telemetry-gateway.kagent.mesh.internal`. The management chart has already labeled those services with `solo.io/service-scope=global`, so cross-cluster discovery works automatically.
+3. Install the `relay` chart on the second cluster with `products.mesh.enabled=true`, pointing at `solo-enterprise-tunnel.kagent.mesh.internal:9000` and `solo-enterprise-telemetry-gateway.kagent.mesh.internal`. The management chart has already labeled those services with `solo.io/service-scope=global`, so cross-cluster discovery works automatically.
 
 ## Next Steps
 
