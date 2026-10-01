@@ -1,5 +1,10 @@
 # Changelog
 
+0.2.4 - (9-30-26)
+---
+- Rewrite the service takeover bonus in `/istio-ambient-multicluster/015-grpc-loadbalancing.md` as Migrate a service between clusters without changing hostnames
+- Document the cut-over order: detach the `cluster1` waypoint (`istio.io/use-waypoint`) before scaling `cluster1` down, and re-attach it only after the pods are back. The local waypoint holds only local endpoints for the taken-over hostname, so scaling down first fails requests. The procedure is for planned migrations only.
+
 0.2.3 - (9-23-26)
 ---
 - Upgrade the Solo Management UI and `relay` charts to `0.5.8` in all four workshops, including prerequisite image lists (autoauth `v0.2.3`, `opentelemetry-collector-contrib` `0.158.0`)
