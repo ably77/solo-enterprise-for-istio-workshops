@@ -36,7 +36,8 @@ Hands-on workshop for deploying Solo Enterprise for Istio Ambient Mesh on a sing
 | [009-install-solo-ui.md](009-install-solo-ui.md) | Install the Solo Management UI |
 | [010-grpc-loadbalancing.md](010-grpc-loadbalancing.md) | gRPC load balancing with a waypoint |
 | [011-vm-integration.md](011-vm-integration.md) | Add a VM workload to the mesh (Docker-based local cluster) |
-| [012-cleanup.md](012-cleanup.md) | Teardown |
+| [012-vm-integration-mysql.md](012-vm-integration-mysql.md) | Run a MySQL database on a VM in the mesh (Docker-based local cluster) |
+| [013-cleanup.md](013-cleanup.md) | Teardown |
 
 ## Getting Started
 

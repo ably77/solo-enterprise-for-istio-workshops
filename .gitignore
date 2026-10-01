@@ -60,3 +60,7 @@ docs/superpowers/
 # VM integration lab (011): bootstrap and workload tokens are credentials
 **/vm-tokens/
 **/vm-config/
+
+# VM MySQL lab (012): bootstrap and workload tokens are credentials
+**/vm-db-tokens/
+**/vm-db-config/

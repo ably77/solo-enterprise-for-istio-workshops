@@ -43,7 +43,7 @@ In this lab, the VM is three containers on the cluster's Docker network:
 
 The VM's ztunnel authenticates to istiod with the bootstrap token from `vm add-workload`. That token is a long-lived Kubernetes service account token with no audience, and istiod rejects tokens like it by default. Setting `REQUIRE_3P_TOKEN=false` makes istiod accept them.
 
-This relaxes one check: anyone holding a non-expiring service account token for a mesh identity can get a certificate for that identity until the token is deleted. Pods are unaffected, because they use expiring, audience-bound tokens. Keep this setting out of production clusters. It stays in place until lab `012` uninstalls Istio.
+This relaxes one check: anyone holding a non-expiring service account token for a mesh identity can get a certificate for that identity until the token is deleted. Pods are unaffected, because they use expiring, audience-bound tokens. Keep this setting out of production clusters. It stays in place until lab `013` uninstalls Istio.
 
 ```bash
 helm upgrade --kube-context $KUBECONTEXT_CLUSTER1 istiod oci://us-docker.pkg.dev/soloio-img/istio-helm/istiod \
@@ -325,4 +325,6 @@ Remove the VM namespace and the east-west gateway:
 kubectl delete namespace vm-apps istio-eastwest --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
-istiod keeps `REQUIRE_3P_TOKEN=false` until you uninstall Istio. If you would like to clean up all workshop resources, see `012` for cleanup instructions.
+To run a MySQL database on a VM in the mesh, continue to lab `012`.
+
+istiod keeps `REQUIRE_3P_TOKEN=false` until you uninstall Istio. If you would like to clean up all workshop resources, see `013` for cleanup instructions.

@@ -199,4 +199,4 @@ Remove the namespace, which takes the waypoint, the apps, and the labels with it
 kubectl delete ns grpcdemo --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
-If you would like to clean up all workshop resources, see `012` for cleanup instructions.
+If you would like to clean up all workshop resources, see `013` for cleanup instructions.

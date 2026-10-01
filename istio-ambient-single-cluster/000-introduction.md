@@ -9,6 +9,7 @@
 - Observe L4 and L7 mesh metrics
 - Load balance gRPC per request with a waypoint
 - Onboard a VM workload into the mesh with its own identity
+- Run a MySQL database on a VM in the mesh and control access to it by identity
 
 # Use Cases
 - Zero Trust (mTLS)
@@ -21,7 +22,7 @@
 ## Validated on
 - GKE (Kubernetes 1.29+)
 - Istio 1.30.2-solo
-- vind on Docker Desktop (arm64) for lab `011`
+- vind on Docker Desktop (arm64) for labs `011` and `012`
 
 ## License Key Details
 This workshop requires a Solo Trial License Key, exported as `SOLO_TRIAL_LICENSE_KEY` in lab `002`.
