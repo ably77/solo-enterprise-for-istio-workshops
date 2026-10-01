@@ -53,3 +53,10 @@ temp/
 # Diagram sources — only the rendered PNGs in images/ are committed
 images/*.html
 images/render.sh
+
+# superpowers workflow artifacts
+docs/superpowers/
+
+# VM integration lab (011): bootstrap and workload tokens are credentials
+**/vm-tokens/
+**/vm-config/

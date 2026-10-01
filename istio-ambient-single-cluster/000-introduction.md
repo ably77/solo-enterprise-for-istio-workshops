@@ -8,6 +8,7 @@
 - Control egress traffic through a dedicated egress waypoint
 - Observe L4 and L7 mesh metrics
 - Load balance gRPC per request with a waypoint
+- Onboard a VM workload into the mesh with its own identity
 
 # Use Cases
 - Zero Trust (mTLS)
@@ -15,10 +16,12 @@
 - Egress Control
 - Observability
 - gRPC load balancing
+- VM integration
 
 ## Validated on
 - GKE (Kubernetes 1.29+)
 - Istio 1.30.2-solo
+- vind on Docker Desktop (arm64) for lab `011`
 
 ## License Key Details
 This workshop requires a Solo Trial License Key, exported as `SOLO_TRIAL_LICENSE_KEY` in lab `002`.

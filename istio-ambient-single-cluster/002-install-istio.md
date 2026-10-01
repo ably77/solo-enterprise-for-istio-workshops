@@ -241,11 +241,11 @@ meshConfig:
 env:
   # Enables assigning multi-cluster services an IP address
   PILOT_ENABLE_IP_AUTOALLOCATE: "true"
-  # Disable selecting workload entries for local service routing
-  PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES: "false"
+  # Lets Kubernetes Services select WorkloadEntries. Required for VM integration
+  PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES: "true"
   # Required when clusters have distinct trust domains (cluster1.local vs cluster2.local)
   PILOT_SKIP_VALIDATE_TRUST_DOMAIN: "true"
-# Enables Solo's multicluster peering API — required for `istioctl multicluster link`
+# Enables Solo's multicluster peering API, required by istioctl multicluster link
 platforms:
   peering:
     enabled: true

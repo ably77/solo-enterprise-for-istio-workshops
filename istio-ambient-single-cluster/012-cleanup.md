@@ -28,6 +28,14 @@ kubectl delete namespace bookinfo-frontends bookinfo-backends --context $KUBECON
 kubectl delete namespace grpcdemo --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
+## VM integration (lab `011`)
+
+```bash
+docker rm -f vm-1-ztunnel vm-1-app vm-1 2>/dev/null
+rm -rf ./vm-tokens ./vm-config
+kubectl delete namespace vm-apps istio-eastwest --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+```
+
 ## Uninstall Istio
 
 ```bash
