@@ -51,7 +51,7 @@ for CONTEXT in "${CLUSTERS[@]}"; do
   helm uninstall istio-base -n istio-system --kube-context $CONTEXT --ignore-not-found
 
   # Namespaces: bookinfo, istio, egress (lab 012), kagent and solo-enterprise (lab 013),
-  # grpcdemo (lab 015)
+  # grpcdemo (labs 015 and 016)
   kubectl delete ns bookinfo-frontends bookinfo-backends istio-gateways istio-system \
     egress kagent solo-enterprise grpcdemo --context $CONTEXT --ignore-not-found
 done
