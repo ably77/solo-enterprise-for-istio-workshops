@@ -1,5 +1,10 @@
 # Changelog
 
+0.2.5 - (9-30-26)
+---
+- Split the service takeover migration out of `/istio-ambient-multicluster/015-grpc-loadbalancing.md` into a new lab, `/istio-ambient-multicluster/016-grpc-service-takeover-migration.md`. The new lab sets up its own client, server, and `cluster2` waypoint, so it runs with or without lab `015`'s resources in place. Validated on Solo Istio `1.30.2`.
+- Rename `016-cleanup.md` to `017-cleanup.md`, and update the lab references in `013`, `014`, `015`, `000-introduction.md`, `000-prerequisites.md`, `007`, `008`, the workshop README lab table, and the root README (workshop description and use-case table)
+
 0.2.4 - (9-30-26)
 ---
 - Rewrite the service takeover bonus in `/istio-ambient-multicluster/015-grpc-loadbalancing.md` as Migrate a service between clusters without changing hostnames

@@ -16,6 +16,7 @@
 - Egress Control
 - Install the Solo Management UI for multicluster mesh visibility
 - Load balance gRPC across clusters with a waypoint next to the backends
+- Migrate a gRPC service between clusters while clients keep its cluster-local hostname (service takeover)
 
 # Use Cases
 - Zero Trust (mTLS)
@@ -28,6 +29,7 @@
 - Namespace isolation across clusters (Segments)
 - L7 traffic management (waypoints)
 - Cross-cluster gRPC load balancing
+- Service migration between clusters (service takeover)
 
 ## Validated on
 - Kubernetes ≥ 1.29
