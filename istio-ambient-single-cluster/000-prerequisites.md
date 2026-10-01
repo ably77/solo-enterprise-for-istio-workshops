@@ -6,7 +6,7 @@
 5. A Kubernetes version >= 1.29
 6. `openssl` available in your shell — used in lab `002` to generate the shared root trust CA. macOS and Linux include this by default. Windows users must use WSL or Git Bash.
 7. (Optional) Vegeta for load generation — see [000-tools.md](000-tools.md#vegeta-cli-load-generator)
-8. (Lab `011` only) A Docker-based local cluster (vind or KinD) and the `docker` CLI
+8. (Labs `011` and `012` only) A Docker-based local cluster (vind or KinD) and the `docker` CLI
 
 ### Repos/Images
 
@@ -48,8 +48,9 @@ docker pull docker.io/istio/examples-bookinfo-productpage-v1:1.20.2
 docker pull docker.io/istio/app:1.30.2
 ```
 
-**VM integration images (lab `011`):**
+**VM integration images (labs `011` and `012`):**
 ```bash
 docker pull docker.io/nicolaka/netshoot:latest
+docker pull docker.io/library/mysql:8.4
 ```
-Lab `011` also uses `docker.io/istio/app:1.30.2` and `us-docker.pkg.dev/soloio-img/istio/ztunnel:1.30.2-solo-distroless`, listed above.
+Lab `011` also uses `docker.io/istio/app:1.30.2` and `us-docker.pkg.dev/soloio-img/istio/ztunnel:1.30.2-solo-distroless`, listed above. Lab `012` uses the same ztunnel image.

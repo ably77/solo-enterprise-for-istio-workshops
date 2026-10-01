@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: mysql-allow-orders-api
+  namespace: vm-db
+spec:
+  selector:
+    matchLabels:
+      vm.solo.io/workload: mysql
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster1.local/ns/db-clients/sa/orders-api

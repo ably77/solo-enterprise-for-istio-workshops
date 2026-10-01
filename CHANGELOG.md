@@ -1,5 +1,12 @@
 # Changelog
 
+0.2.7 - (10-1-26)
+---
+- Add new lab: `/istio-ambient-single-cluster/012-vm-integration-mysql.md`: run a seeded MySQL database on a VM in the ambient mesh, query it from pods by Service name over mTLS, and allow one client and reject another with an identity-based L4 `AuthorizationPolicy`.
+- Add `vm/mysql/seed.sql`, `vm/mysql/db-clients.yaml`, `vm/mysql/mysql-allow-orders-api.yaml`, and a MySQL VM diagram
+- Rename `012-cleanup.md` to `013-cleanup.md` and add a MySQL VM section; update the lab references in `010`, `011`, `000-introduction.md`, `000-prerequisites.md`, and the workshop README lab table
+- Update gitignore
+
 0.2.6 - (10-1-26)
 ---
 - Add new lab: `/istio-ambient-single-cluster/011-vm-integration.md`: onboard a workload on a VM into the ambient mesh with `solo-istioctl vm add-workload`, call the mesh from the VM through ztunnel's SOCKS5 proxy, call the VM by its Service name, and restrict it with an identity-based `AuthorizationPolicy`. The VM is a container on the cluster's Docker network, so the lab runs on vind or KinD. Validated on vind (Docker Desktop, arm64) with Solo Istio `1.30.2`.

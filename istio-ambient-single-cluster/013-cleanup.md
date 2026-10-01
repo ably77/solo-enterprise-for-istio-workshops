@@ -36,6 +36,14 @@ rm -rf ./vm-tokens ./vm-config
 kubectl delete namespace vm-apps istio-eastwest --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
 ```
 
+## MySQL on a VM (lab `012`)
+
+```bash
+docker rm -f -v db-vm-ztunnel db-vm-mysql db-vm 2>/dev/null
+rm -rf ./vm-db-tokens ./vm-db-config
+kubectl delete namespace vm-db db-clients --context $KUBECONTEXT_CLUSTER1 --ignore-not-found
+```
+
 ## Uninstall Istio
 
 ```bash
