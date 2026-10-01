@@ -1,5 +1,14 @@
 # Changelog
 
+0.2.6 - (10-1-26)
+---
+- Add new lab: `/istio-ambient-single-cluster/011-vm-integration.md`: onboard a workload on a VM into the ambient mesh with `solo-istioctl vm add-workload`, call the mesh from the VM through ztunnel's SOCKS5 proxy, call the VM by its Service name, and restrict it with an identity-based `AuthorizationPolicy`. The VM is a container on the cluster's Docker network, so the lab runs on vind or KinD. Validated on vind (Docker Desktop, arm64) with Solo Istio `1.30.2`.
+- Add `vm/app1-allow-productpage.yaml` and a VM integration diagram
+- Rename `011-cleanup.md` to `012-cleanup.md` and add a VM section; update the lab references in `010`, `000-introduction.md`, `000-prerequisites.md`, the workshop README lab table, and the root README (workshop description and use-case table)
+- Update gitignore
+- `/istio-ambient-single-cluster/002-install-istio.md`: set `PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES` to `true` (the istiod default), which lab `011` needs. Lab `011` sets `REQUIRE_3P_TOKEN=false` with one istiod upgrade that stays until Istio is uninstalled.
+- Fix the istiod install in `/istio-ambient-single-cluster/002-install-istio.md` and `/istio-ambient-single-cluster-on-openshift/002-install-istio.md`: a comment inside the unquoted Helm values heredoc held `istioctl multicluster link` in backticks, so bash ran that command during the install. The comment now has no backticks.
+
 0.2.5 - (9-30-26)
 ---
 - Split the service takeover migration out of `/istio-ambient-multicluster/015-grpc-loadbalancing.md` into a new lab, `/istio-ambient-multicluster/016-grpc-service-takeover-migration.md`. The new lab sets up its own client, server, and `cluster2` waypoint, so it runs with or without lab `015`'s resources in place. Validated on Solo Istio `1.30.2`.

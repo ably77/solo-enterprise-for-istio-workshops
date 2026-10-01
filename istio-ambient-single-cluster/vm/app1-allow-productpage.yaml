@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: app1-allow-productpage
+  namespace: vm-apps
+spec:
+  selector:
+    matchLabels:
+      vm.solo.io/workload: app1
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster1.local/ns/bookinfo-frontends/sa/bookinfo-productpage

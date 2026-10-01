@@ -8,7 +8,7 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 
 | Workshop | Platform | Clusters | Description |
 |---|---|---|---|
-| [`istio-ambient-single-cluster`](istio-ambient-single-cluster/) | Standard Kubernetes | 1 | Single-cluster ambient mesh on standard Kubernetes — zero trust, ingress, egress, waypoints, observability, Solo Management UI, gRPC load balancing. |
+| [`istio-ambient-single-cluster`](istio-ambient-single-cluster/) | Standard Kubernetes | 1 | Single-cluster ambient mesh on standard Kubernetes — zero trust, ingress, egress, waypoints, observability, Solo Management UI, gRPC load balancing, VM integration. |
 | [`istio-ambient-single-cluster-on-openshift`](istio-ambient-single-cluster-on-openshift/) | OpenShift | 1 | Single-cluster ambient mesh on OpenShift — ingress, egress, waypoints, observability with OpenShift User Workload Monitoring, Solo Management UI. |
 | [`istio-ambient-multicluster-on-openshift`](istio-ambient-multicluster-on-openshift/) | OpenShift | 2 | Ambient mesh across two OpenShift clusters — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Solo Management UI. |
 | [`istio-ambient-multicluster`](istio-ambient-multicluster/) | Standard Kubernetes | 2 | Ambient mesh across two standard Kubernetes clusters — multicluster routing, global service discovery, failover, segments, global aliases, zero-trust access control, egress, waypoints, observability, Solo Management UI, cross-cluster gRPC load balancing, service migration between clusters with service takeover. |
@@ -31,6 +31,7 @@ Hands-on workshops for deploying and operating **Solo Enterprise for Istio** wit
 | Egress Control | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Waypoints | ✓ | ✓ | ✓ | ✓ | ✓ |
 | gRPC load balancing | ✓ | | ✓ | | |
+| VM integration | ✓ | | | | |
 | Observability | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Multi-cluster routing | | | ✓ | | ✓ |
 | Global service discovery | | | ✓ | | ✓ |
