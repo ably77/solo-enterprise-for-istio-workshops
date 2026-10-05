@@ -1,3 +1,9 @@
+# NOTE:
+This repo has been migrated to the solo-io org and will be updated here:
+https://github.com/solo-io/fe-solo-enterprise-for-istio-workshops
+
+Will likely archive this repo in the near future. Please navigate to the link above for latest updates!
+
 # Solo Enterprise for Istio Workshops
 
 Hands-on workshops for deploying and operating **Solo Enterprise for Istio** with Ambient Mesh. Workshops cover zero-trust security, ingress, egress control, observability, multi-cluster routing, and global service discovery using the Bookinfo sample application.
